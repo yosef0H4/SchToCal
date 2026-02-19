@@ -12,7 +12,7 @@ function convertTo24Hour(h: number, m: number, period: string): [number, number]
   return [hour, m];
 }
 
-function getAdjustedTimes(
+export function getAdjustedTimesInMinutes(
   startStr: string,
   endStr: string,
   ramadanMode: boolean,
@@ -78,7 +78,7 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
     course.schedule.forEach((entry) => {
       if (!entry.startTime || !entry.endTime) return;
 
-      const { start: startTotalMins, end: endTotalMins } = getAdjustedTimes(
+      const { start: startTotalMins, end: endTotalMins } = getAdjustedTimesInMinutes(
         entry.startTime,
         entry.endTime,
         options.ramadanMode,
@@ -133,7 +133,7 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
 
     scheduleData.forEach((course) => {
       course.schedule.forEach((entry) => {
-        const { start, end } = getAdjustedTimes(
+        const { start, end } = getAdjustedTimesInMinutes(
           entry.startTime,
           entry.endTime,
           options.ramadanMode,

@@ -9,9 +9,13 @@
     "build:web": "vite build",
     "build": "npm run clean && npm run build:tm && npm run build:web",
     "dev:web": "vite",
-    "preview:web": "vite preview"
+    "preview:web": "vite preview",
+    "preview:build": "npm run build && npm run preview:web"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.20",
+    "@fullcalendar/react": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.2",
     "lucide-react": "^0.575.0",

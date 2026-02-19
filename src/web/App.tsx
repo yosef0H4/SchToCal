@@ -1,5 +1,9 @@
-import { ChangeEvent, useMemo, useState, useRef } from "react";
-import { generateIcs, downloadFile } from "../core/ics";
+import { ChangeEvent, useEffect, useMemo, useState, useRef } from "react";
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import arLocale from "@fullcalendar/core/locales/ar";
+import { EventContentArg, EventInput } from "@fullcalendar/core";
+import { generateIcs, downloadFile, getAdjustedTimesInMinutes } from "../core/ics";
 import { parseScheduleFromHtml } from "../core/parse";
 import { uiStrings } from "../core/strings";
 import { CourseSchedule, Lang } from "../core/types";
@@ -16,7 +20,6 @@ import {
   FileCheck,
   AlertCircle,
   Sparkles,
-  Smile,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -88,6 +91,139 @@ type ParseState = {
   studentName: string;
 };
 
+const WEB_PREFS_KEY = "scheduleWebPrefs";
+
+function getWeekStartSunday(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function buildWeeklyPreviewEvents(
+  courses: CourseSchedule[],
+  courseEmojis: Record<string, string>,
+  ramadanMode: boolean,
+  drivingTimeTo: number,
+  drivingTimeFrom: number,
+  drivingEmoji: string,
+  drivingToLabel: string,
+  drivingFromLabel: string,
+): EventInput[] {
+  const sunday = getWeekStartSunday(new Date());
+  const events: EventInput[] = [];
+
+  courses.forEach((course) => {
+    const sanitizedCode = course.courseCode.replace(/\s+/g, "-");
+    const emoji = courseEmojis[sanitizedCode] ?? "📚";
+
+    course.schedule.forEach((entry, entryIndex) => {
+      if (!entry.startTime || !entry.endTime) return;
+
+      const { start, end } = getAdjustedTimesInMinutes(
+        entry.startTime,
+        entry.endTime,
+        ramadanMode,
+      );
+
+      const startHour = Math.floor(start / 60);
+      const startMinute = start % 60;
+      const endHour = Math.floor(end / 60);
+      const endMinute = end % 60;
+
+      entry.days.forEach((dayStr) => {
+        const dayIndex = parseInt(dayStr, 10);
+        if (Number.isNaN(dayIndex) || dayIndex < 1 || dayIndex > 7) return;
+
+        const jsDay = dayIndex - 1; // 1=SU ... 7=SA
+        const baseDate = new Date(sunday);
+        baseDate.setDate(sunday.getDate() + jsDay);
+
+        const startDate = new Date(baseDate);
+        startDate.setHours(startHour, startMinute, 0, 0);
+
+        const endDate = new Date(baseDate);
+        endDate.setHours(endHour, endMinute, 0, 0);
+
+        events.push({
+          id: `${sanitizedCode}-${entryIndex}-${dayIndex}`,
+          title: `${emoji} ${course.courseCode}`,
+          start: startDate,
+          end: endDate,
+          extendedProps: {
+            room: entry.room,
+            activity: course.activity,
+            courseName: course.courseName,
+          },
+        });
+      });
+    });
+  });
+
+  if (drivingTimeTo > 0 || drivingTimeFrom > 0) {
+    const dailyBounds: Record<string, { start: number; end: number }> = {};
+
+    courses.forEach((course) => {
+      course.schedule.forEach((entry) => {
+        const { start, end } = getAdjustedTimesInMinutes(
+          entry.startTime,
+          entry.endTime,
+          ramadanMode,
+        );
+
+        entry.days.forEach((dayStr) => {
+          const dayIndex = parseInt(dayStr, 10);
+          if (Number.isNaN(dayIndex) || dayIndex < 1 || dayIndex > 7) return;
+
+          const key = String(dayIndex);
+          if (!dailyBounds[key]) dailyBounds[key] = { start, end };
+          else {
+            if (start < dailyBounds[key].start) dailyBounds[key].start = start;
+            if (end > dailyBounds[key].end) dailyBounds[key].end = end;
+          }
+        });
+      });
+    });
+
+    Object.entries(dailyBounds).forEach(([dayKey, bounds]) => {
+      const dayIndex = parseInt(dayKey, 10);
+      const jsDay = dayIndex - 1; // 1=SU ... 7=SA
+      const baseDate = new Date(sunday);
+      baseDate.setDate(sunday.getDate() + jsDay);
+
+      if (drivingTimeTo > 0) {
+        const startDate = new Date(baseDate);
+        const endDate = new Date(baseDate);
+        startDate.setHours(0, bounds.start - drivingTimeTo, 0, 0);
+        endDate.setHours(0, bounds.start, 0, 0);
+        events.push({
+          id: `drive-to-${dayIndex}`,
+          title: `${drivingEmoji} ${drivingToLabel}`,
+          start: startDate,
+          end: endDate,
+          classNames: ["fc-driving-event"],
+        });
+      }
+
+      if (drivingTimeFrom > 0) {
+        const startDate = new Date(baseDate);
+        const endDate = new Date(baseDate);
+        startDate.setHours(0, bounds.end, 0, 0);
+        endDate.setHours(0, bounds.end + drivingTimeFrom, 0, 0);
+        events.push({
+          id: `drive-from-${dayIndex}`,
+          title: `${drivingEmoji} ${drivingFromLabel}`,
+          start: startDate,
+          end: endDate,
+          classNames: ["fc-driving-event"],
+        });
+      }
+    });
+  }
+
+  return events;
+}
+
 function App() {
   const [lang, setLang] = useState<Lang>("ar");
   const [fileName, setFileName] = useState<string>("");
@@ -109,6 +245,109 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = uiStrings[lang];
   const direction = useMemo(() => (lang === "ar" ? "rtl" : "ltr"), [lang]);
+  const drivingTimeTo =
+    (parseInt(driveToH || "0", 10) * 60) + parseInt(driveToM || "0", 10);
+  const drivingTimeFrom =
+    (parseInt(driveFromH || "0", 10) * 60) + parseInt(driveFromM || "0", 10);
+  const weeklyEvents = useMemo(
+    () =>
+      parsed
+        ? buildWeeklyPreviewEvents(
+            parsed.scheduleData,
+            courseEmojis,
+            ramadanMode,
+            drivingTimeTo,
+            drivingTimeFrom,
+            drivingEmoji || "🚗",
+            strings.drivingTo,
+            strings.drivingFrom,
+          )
+        : [],
+    [
+      parsed,
+      courseEmojis,
+      ramadanMode,
+      drivingTimeTo,
+      drivingTimeFrom,
+      drivingEmoji,
+      strings.drivingTo,
+      strings.drivingFrom,
+    ],
+  );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(WEB_PREFS_KEY);
+      if (!raw) return;
+      const prefs = JSON.parse(raw) as {
+        lang?: Lang;
+        fileName?: string;
+        rawHtml?: string;
+        semesterStart?: string;
+        semesterEnd?: string;
+        driveToH?: string;
+        driveToM?: string;
+        driveFromH?: string;
+        driveFromM?: string;
+        drivingEmoji?: string;
+        ramadanMode?: boolean;
+        courseEmojis?: Record<string, string>;
+      };
+
+      if (prefs.lang === "ar" || prefs.lang === "en") setLang(prefs.lang);
+      if (typeof prefs.fileName === "string") setFileName(prefs.fileName);
+      if (typeof prefs.semesterStart === "string") setSemesterStart(prefs.semesterStart);
+      if (typeof prefs.semesterEnd === "string") setSemesterEnd(prefs.semesterEnd);
+      if (typeof prefs.driveToH === "string") setDriveToH(prefs.driveToH);
+      if (typeof prefs.driveToM === "string") setDriveToM(prefs.driveToM);
+      if (typeof prefs.driveFromH === "string") setDriveFromH(prefs.driveFromH);
+      if (typeof prefs.driveFromM === "string") setDriveFromM(prefs.driveFromM);
+      if (typeof prefs.drivingEmoji === "string") setDrivingEmoji(prefs.drivingEmoji);
+      if (typeof prefs.ramadanMode === "boolean") setRamadanMode(prefs.ramadanMode);
+      if (prefs.courseEmojis && typeof prefs.courseEmojis === "object") {
+        setCourseEmojis(prefs.courseEmojis);
+      }
+
+      if (typeof prefs.rawHtml === "string" && prefs.rawHtml.trim()) {
+        setRawHtml(prefs.rawHtml);
+        const restored = parseScheduleFromHtml(prefs.rawHtml);
+        if (restored) setParsed(restored);
+      }
+    } catch {
+      // ignore corrupted local storage
+    }
+  }, []);
+
+  useEffect(() => {
+    const prefs = {
+      lang,
+      fileName,
+      rawHtml,
+      semesterStart,
+      semesterEnd,
+      driveToH,
+      driveToM,
+      driveFromH,
+      driveFromM,
+      drivingEmoji,
+      ramadanMode,
+      courseEmojis,
+    };
+    localStorage.setItem(WEB_PREFS_KEY, JSON.stringify(prefs));
+  }, [
+    lang,
+    fileName,
+    rawHtml,
+    semesterStart,
+    semesterEnd,
+    driveToH,
+    driveToM,
+    driveFromH,
+    driveFromM,
+    drivingEmoji,
+    ramadanMode,
+    courseEmojis,
+  ]);
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -150,9 +389,9 @@ function App() {
       semesterStart: new Date(`${semesterStart}T00:00:00Z`),
       semesterEnd: new Date(`${semesterEnd}T23:59:59Z`),
       drivingTimeTo:
-        (parseInt(driveToH || "0", 10) * 60) + (parseInt(driveToM || "0", 10)),
+        drivingTimeTo,
       drivingTimeFrom:
-        (parseInt(driveFromH || "0", 10) * 60) + (parseInt(driveFromM || "0", 10)),
+        drivingTimeFrom,
       drivingEmoji,
       ramadanMode,
       lang,
@@ -181,7 +420,7 @@ function App() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#FFE66D]/20 rounded-full blur-3xl" />
       </div>
 
-      <main className="relative z-10 mx-auto max-w-5xl px-4 py-12 md:py-20" dir={direction}>
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-20" dir={direction}>
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
@@ -225,7 +464,7 @@ function App() {
 
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-5 space-y-6">
             {/* Upload */}
             <Card delay={0.1}>
               <div className="flex items-center gap-3 mb-6">
@@ -387,7 +626,7 @@ function App() {
           </div>
 
           {/* Right Column: Preview */}
-          <div className="lg:col-span-5 flex">
+          <div className="lg:col-span-7 flex">
             <Card delay={0.3} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className={cn("p-2.5", theme.iconContainerClass)}>
@@ -411,47 +650,78 @@ function App() {
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0">
-                  {parsed.scheduleData.map((course, idx) => {
-                    const key = course.courseCode.replace(/\s+/g, "-");
-                    return (
-                      <motion.div
-                        key={`${key}-${idx}`}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.05 * idx }}
-                        className={cn(
-                          "relative flex items-start gap-4 p-4 transition-all group border",
-                          theme.borderClass,
-                          "bg-white hover:bg-gray-50 shadow-sm"
-                        )}
-                      >
-                        <div className={cn("relative h-12 w-12 flex items-center justify-center border shrink-0", theme.borderClass, theme.cardInnerBg)}>
-                          <input
-                            className="w-full h-full bg-transparent text-center text-2xl focus:outline-none cursor-pointer"
-                            value={courseEmojis[key] ?? "📚"}
-                            onChange={(e) => setCourseEmojis((prev) => ({ ...prev, [key]: e.target.value }))}
-                          />
-                          <Smile className="absolute -bottom-1 -right-1 h-3 w-3 text-slate-400 pointer-events-none" />
+                <div className="flex-1 space-y-4 overflow-y-auto pr-2 min-h-0">
+                  <div className={cn("border p-2 bg-white", theme.borderClass)}>
+                    <FullCalendar
+                      plugins={[timeGridPlugin]}
+                      initialView="timeGridWeek"
+                      headerToolbar={false}
+                      allDaySlot={false}
+                      height={520}
+                      expandRows
+                      slotMinTime="07:00:00"
+                      slotMaxTime="22:00:00"
+                      firstDay={0}
+                      hiddenDays={[5, 6]}
+                      dayHeaderFormat={{ weekday: "short" }}
+                      events={weeklyEvents}
+                      eventTimeFormat={{
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      }}
+                      eventContent={(arg: EventContentArg) => (
+                        <div className="fc-event-custom" dir={direction}>
+                          <div className="fc-event-title-custom">{arg.event.title}</div>
+                          <div className="fc-event-time-custom">{arg.timeText}</div>
                         </div>
+                      )}
+                      locale={lang === "ar" ? arLocale : "en"}
+                      direction={direction}
+                    />
+                  </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <h3 className={cn("font-bold truncate", theme.textClass)}>{course.courseCode}</h3>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 bg-gray-100 text-gray-600">
-                              {course.sectionNumber}
-                            </span>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {parsed.scheduleData.map((course, idx) => {
+                      const key = course.courseCode.replace(/\s+/g, "-");
+                      return (
+                        <motion.div
+                          key={`${key}-${idx}`}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * idx }}
+                          className={cn(
+                            "relative flex items-start gap-4 p-4 transition-all group border",
+                            theme.borderClass,
+                            "bg-white hover:bg-gray-50 shadow-sm"
+                          )}
+                        >
+                          <div className={cn("h-12 w-12 flex items-center justify-center border shrink-0", theme.borderClass, theme.cardInnerBg)}>
+                            <input
+                              className="w-full h-full bg-transparent text-center text-2xl focus:outline-none cursor-pointer"
+                              value={courseEmojis[key] ?? "📚"}
+                              onChange={(e) => setCourseEmojis((prev) => ({ ...prev, [key]: e.target.value }))}
+                            />
                           </div>
-                          <p className={cn("text-xs mt-1 line-clamp-2 leading-relaxed", theme.subTextClass)}>
-                            {course.courseName}
-                          </p>
-                          <div className={cn("mt-2 text-[10px] uppercase tracking-wider font-bold", theme.accentColor)}>
-                            {course.activity}
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <h3 className={cn("font-bold truncate", theme.textClass)}>{course.courseCode}</h3>
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                                {course.sectionNumber}
+                              </span>
+                            </div>
+                            <p className={cn("text-xs mt-1 line-clamp-2 leading-relaxed", theme.subTextClass)}>
+                              {course.courseName}
+                            </p>
+                            <div className={cn("mt-2 text-[10px] uppercase tracking-wider font-bold", theme.accentColor)}>
+                              {course.activity}
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </Card>

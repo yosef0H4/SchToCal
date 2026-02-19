@@ -9,3 +9,34 @@
 * {
   box-sizing: border-box;
 }
+
+.fc .fc-timegrid-event {
+  min-height: 46px;
+  border-radius: 6px;
+}
+
+.fc-event-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+  padding: 1px 2px;
+}
+
+.fc-event-title-custom {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-event-time-custom {
+  font-size: 10px;
+  opacity: 0.95;
+}
+
+.fc-driving-event {
+  background-color: #2f855a !important;
+  border-color: #276749 !important;
+}
