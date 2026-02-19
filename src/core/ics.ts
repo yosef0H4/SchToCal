@@ -207,7 +207,7 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//YourScript//PSAU Schedule to ICS//EN",
+    "PRODID:-//ScheduleTools//Schedule to ICS//EN",
     "CALSCALE:GREGORIAN",
     "BEGIN:VTIMEZONE",
     "TZID:Asia/Riyadh",

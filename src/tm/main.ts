@@ -4,7 +4,7 @@ import { uiStrings } from "../core/strings";
 import { Lang, Prefs } from "../core/types";
 import { CONTROLS_HTML, USERSCRIPT_CSS } from "./assets/generated";
 
-const PREFS_KEY = "psauSchedulePrefs";
+const PREFS_KEY = "schedulePrefs";
 let currentLanguage: Lang = "ar";
 let stylesInjected = false;
 
