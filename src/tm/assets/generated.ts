@@ -1,5 +1,4 @@
-namespace SchMakerApp {
-  export const CONTROLS_HTML = `<div class="sm-field sm-col">
+export const CONTROLS_HTML = `<div class="sm-field sm-col">
   <label for="semesterStart" id="labelSemesterStart"></label>
   <input type="date" id="semesterStart" class="save-state sm-input" />
 </div>
@@ -33,7 +32,7 @@ namespace SchMakerApp {
   </select>
 </div>`;
 
-  export const USERSCRIPT_CSS = `#custom-controls-container {
+export const USERSCRIPT_CSS = `#custom-controls-container {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -130,4 +129,3 @@ namespace SchMakerApp {
   border-radius: 5px;
   cursor: pointer;
 }`;
-}

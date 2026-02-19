@@ -6,11 +6,9 @@ const userCss = readFileSync("src/styles/userscript.css", "utf8").trim();
 const escapeTemplateLiteral = (value) =>
   value.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
 
-const output = `namespace SchMakerApp {
-  export const CONTROLS_HTML = \`${escapeTemplateLiteral(controlsHtml)}\`;
+const output = `export const CONTROLS_HTML = \`${escapeTemplateLiteral(controlsHtml)}\`;
 
-  export const USERSCRIPT_CSS = \`${escapeTemplateLiteral(userCss)}\`;
-}
+export const USERSCRIPT_CSS = \`${escapeTemplateLiteral(userCss)}\`;
 `;
 
-writeFileSync("src/15.assets.generated.ts", output, "utf8");
+writeFileSync("src/tm/assets/generated.ts", output, "utf8");

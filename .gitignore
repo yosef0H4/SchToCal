@@ -9,6 +9,8 @@ pnpm-debug.log*
 
 # Build/cache
 *.tsbuildinfo
+dist/
+.vite/
 
 # OS/editor
 .DS_Store
