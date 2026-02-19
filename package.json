@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "prebuild": "node scripts/embed-assets.mjs",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch"
   },

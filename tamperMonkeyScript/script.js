@@ -23,6 +23,139 @@
 })();
 var SchMakerApp;
 (function (SchMakerApp) {
+    SchMakerApp.CONTROLS_HTML = `<div class="sm-field sm-col">
+  <label for="semesterStart" id="labelSemesterStart"></label>
+  <input type="date" id="semesterStart" class="save-state sm-input" />
+</div>
+<div class="sm-field sm-col">
+  <label for="semesterEnd" id="labelSemesterEnd"></label>
+  <input type="date" id="semesterEnd" class="save-state sm-input" />
+</div>
+<div class="sm-field sm-col">
+  <label id="labelDrivingTimeTo"></label>
+  <div class="sm-row">
+    <input type="number" id="drivingTimeToHours" class="save-state sm-input sm-time" min="0" />
+    <input type="number" id="drivingTimeToMinutes" class="save-state sm-input sm-time" min="0" max="59" />
+  </div>
+</div>
+<div class="sm-field sm-col">
+  <label id="labelDrivingTimeFrom"></label>
+  <div class="sm-row">
+    <input type="number" id="drivingTimeFromHours" class="save-state sm-input sm-time" min="0" />
+    <input type="number" id="drivingTimeFromMinutes" class="save-state sm-input sm-time" min="0" max="59" />
+  </div>
+</div>
+<div class="sm-field sm-col">
+  <label for="drivingEmoji" id="labelDrivingEmoji"></label>
+  <input type="text" id="drivingEmoji" class="save-state sm-input sm-emoji" value="🚗" />
+</div>
+<div class="sm-field sm-col">
+  <label id="labelRamadanMode" for="ramadanMode">Ramadan Mode</label>
+  <select id="ramadanMode" class="save-state sm-input">
+    <option value="off">Off</option>
+    <option value="on">On</option>
+  </select>
+</div>`;
+    SchMakerApp.USERSCRIPT_CSS = `#custom-controls-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 15px;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+#custom-controls-container .sm-col {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+#custom-controls-container .sm-col label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#custom-controls-container .sm-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+#custom-controls-container .sm-input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#custom-controls-container .sm-time {
+  width: 60px;
+}
+
+#custom-controls-container .sm-emoji {
+  width: 50px;
+  text-align: center;
+}
+
+.sm-button-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.sm-guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sm-guide-content {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  font-family: Arial, sans-serif;
+}
+
+.sm-guide-content h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.sm-guide-content ol {
+  line-height: 1.6;
+}
+
+.sm-guide-content ol[dir="rtl"] {
+  padding-right: 20px;
+}
+
+.sm-guide-content ol[dir="ltr"] {
+  padding-left: 20px;
+}
+
+#guideCloseBtn {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}`;
+})(SchMakerApp || (SchMakerApp = {}));
+var SchMakerApp;
+(function (SchMakerApp) {
     SchMakerApp.PREFS_KEY = "psauSchedulePrefs";
     SchMakerApp.uiStrings = {
         ar: {
@@ -145,62 +278,28 @@ var SchMakerApp;
 })(SchMakerApp || (SchMakerApp = {}));
 var SchMakerApp;
 (function (SchMakerApp) {
+    let stylesInjected = false;
+    function injectStyles() {
+        if (stylesInjected)
+            return;
+        const styleEl = document.createElement("style");
+        styleEl.id = "schmaker-userscript-styles";
+        styleEl.textContent = SchMakerApp.USERSCRIPT_CSS;
+        document.head.appendChild(styleEl);
+        stylesInjected = true;
+    }
     function initializeScript() {
         const printButtonContainer = document.querySelector("a#myForm\\:printLink");
         if (!printButtonContainer) {
             console.log("Script anchor not found, exiting.");
             return;
         }
+        injectStyles();
         const controlsContainer = document.createElement("div");
         controlsContainer.id = "custom-controls-container";
-        controlsContainer.style.display = "flex";
-        controlsContainer.style.flexWrap = "wrap";
-        controlsContainer.style.alignItems = "flex-end";
-        controlsContainer.style.gap = "15px";
-        controlsContainer.style.padding = "10px";
-        controlsContainer.style.marginTop = "10px";
-        controlsContainer.style.border = "1px solid #ddd";
-        controlsContainer.style.borderRadius = "5px";
-        controlsContainer.style.backgroundColor = "#f9f9f9";
-        controlsContainer.innerHTML = `
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label for="semesterStart" id="labelSemesterStart" style="font-weight: bold; margin-bottom: 5px;"></label>
-        <input type="date" id="semesterStart" class="save-state" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-      </div>
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label for="semesterEnd" id="labelSemesterEnd" style="font-weight: bold; margin-bottom: 5px;"></label>
-        <input type="date" id="semesterEnd" class="save-state" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-      </div>
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label id="labelDrivingTimeTo" style="font-weight: bold; margin-bottom: 5px;"></label>
-        <div style="display: flex; gap: 5px; align-items: center;">
-          <input type="number" id="drivingTimeToHours" class="save-state" min="0" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-          <input type="number" id="drivingTimeToMinutes" class="save-state" min="0" max="59" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-      </div>
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label id="labelDrivingTimeFrom" style="font-weight: bold; margin-bottom: 5px;"></label>
-        <div style="display: flex; gap: 5px; align-items: center;">
-          <input type="number" id="drivingTimeFromHours" class="save-state" min="0" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-          <input type="number" id="drivingTimeFromMinutes" class="save-state" min="0" max="59" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-      </div>
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label for="drivingEmoji" id="labelDrivingEmoji" style="font-weight: bold; margin-bottom: 5px;"></label>
-        <input type="text" id="drivingEmoji" class="save-state" value="🚗" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 50px; text-align: center;">
-      </div>
-      <div style="display: flex; flex-direction: column; font-size: 12px;">
-        <label id="labelRamadanMode" for="ramadanMode" style="font-weight: bold; margin-bottom: 5px;">Ramadan Mode</label>
-        <select id="ramadanMode" class="save-state" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-          <option value="off">Off</option>
-          <option value="on">On</option>
-        </select>
-      </div>
-    `;
+        controlsContainer.innerHTML = SchMakerApp.CONTROLS_HTML;
         const buttonWrapper = document.createElement("div");
-        buttonWrapper.style.display = "flex";
-        buttonWrapper.style.gap = "10px";
-        buttonWrapper.style.marginLeft = "auto";
+        buttonWrapper.className = "sm-button-wrapper";
         const createButton = (id, clickHandler) => {
             const btn = printButtonContainer.cloneNode(true);
             btn.id = id;
@@ -266,49 +365,44 @@ var SchMakerApp;
         const strings = SchMakerApp.uiStrings[SchMakerApp.currentLanguage];
         const isArabic = SchMakerApp.currentLanguage === "ar";
         const modalOverlay = document.createElement("div");
-        modalOverlay.style.position = "fixed";
-        modalOverlay.style.top = "0";
-        modalOverlay.style.left = "0";
-        modalOverlay.style.width = "100%";
-        modalOverlay.style.height = "100%";
-        modalOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-        modalOverlay.style.zIndex = "10000";
-        modalOverlay.style.display = "flex";
-        modalOverlay.style.justifyContent = "center";
-        modalOverlay.style.alignItems = "center";
+        modalOverlay.className = "sm-guide-overlay";
         const modalContent = document.createElement("div");
-        modalContent.style.backgroundColor = "#fff";
-        modalContent.style.padding = "25px";
-        modalContent.style.borderRadius = "8px";
-        modalContent.style.maxWidth = "500px";
-        modalContent.style.width = "90%";
+        modalContent.className = "sm-guide-content";
         modalContent.style.textAlign = isArabic ? "right" : "left";
         modalContent.style.direction = isArabic ? "rtl" : "ltr";
-        modalContent.style.fontFamily = "Arial, sans-serif";
-        modalContent.innerHTML = `
-      <h2 style="margin-top: 0; color: #333;">${strings.guideTitle}</h2>
-      <ol style="padding-${isArabic ? "right" : "left"}: 20px; line-height: 1.6;">
-        <li>${strings.guideStep1}</li>
-        <li>${strings.guideStep2}</li>
-        <li>${strings.guideStep3}</li>
-        <li>${strings.guideStep4}</li>
-        <li style="font-weight: bold;">${strings.guideStep5}</li>
-      </ol>
-      <button id="guideCloseBtn" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; float: ${isArabic ? "left" : "right"};">${strings.guideClose}</button>
-    `;
+        const title = document.createElement("h2");
+        title.textContent = strings.guideTitle;
+        const steps = document.createElement("ol");
+        steps.setAttribute("dir", isArabic ? "rtl" : "ltr");
+        [
+            strings.guideStep1,
+            strings.guideStep2,
+            strings.guideStep3,
+            strings.guideStep4,
+            strings.guideStep5,
+        ].forEach((stepText, index) => {
+            const li = document.createElement("li");
+            li.textContent = stepText;
+            if (index === 4)
+                li.style.fontWeight = "bold";
+            steps.appendChild(li);
+        });
+        const closeBtn = document.createElement("button");
+        closeBtn.id = "guideCloseBtn";
+        closeBtn.textContent = strings.guideClose;
+        closeBtn.style.float = isArabic ? "left" : "right";
+        modalContent.appendChild(title);
+        modalContent.appendChild(steps);
+        modalContent.appendChild(closeBtn);
         modalOverlay.appendChild(modalContent);
         document.body.appendChild(modalOverlay);
         modalOverlay.onclick = (e) => {
-            if (e.target === modalOverlay) {
+            if (e.target === modalOverlay)
                 document.body.removeChild(modalOverlay);
-            }
         };
-        const closeBtn = SchMakerApp.byId("guideCloseBtn");
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                document.body.removeChild(modalOverlay);
-            };
-        }
+        closeBtn.onclick = () => {
+            document.body.removeChild(modalOverlay);
+        };
     }
     SchMakerApp.showGuide = showGuide;
     function injectEmojiInputs() {
