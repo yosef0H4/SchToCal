@@ -500,6 +500,54 @@
       const [hour] = convertTo24Hour(h, m, timeStr);
       return hour * 60 + m;
     };
+
+    // Helper: Calculates start/end minutes, applying Ramadan logic if enabled
+    const getAdjustedTimes = (startStr, endStr) => {
+      const isRamadan =
+        document.getElementById("ramadanMode")?.value === "on";
+
+      // Get standard 24h times first
+      const [sH, sM] = startStr.match(/\d+/g).map(Number);
+      const [eH, eM] = endStr.match(/\d+/g).map(Number);
+      const [sHour, sMin] = convertTo24Hour(sH, sM, startStr);
+      const [eHour, eMin] = convertTo24Hour(eH, eM, endStr);
+
+      let startTotal = sHour * 60 + sMin;
+      let endTotal = eHour * 60 + eMin;
+
+      if (isRamadan) {
+        // Map Standard Start Hour to Slot Index
+        // 8->1, 9->2, 10->3, 11->4, 13->5, 14->6, 15->7, 16->8
+        const standardToSlot = {
+          8: 1,
+          9: 2,
+          10: 3,
+          11: 4,
+          13: 5,
+          14: 6,
+          15: 7,
+          16: 8,
+        };
+        const slot = standardToSlot[sHour];
+
+        if (slot) {
+          let ramadanStartMins = 0;
+          if (slot <= 3) {
+            // Morning: 10:00 AM + (Slot-1)*40 mins
+            ramadanStartMins = 10 * 60 + (slot - 1) * 40;
+          } else {
+            // Afternoon: 12:30 PM + (Slot-4)*40 mins
+            // 12:30 PM = 750 minutes
+            ramadanStartMins = 750 + (slot - 4) * 40;
+          }
+
+          startTotal = ramadanStartMins;
+          endTotal = ramadanStartMins + 35; // Duration is fixed to 35 mins
+        }
+      }
+      return { start: startTotal, end: endTotal };
+    };
+
     scheduleData.forEach((course) => {
       const sanitizedCode = course.courseCode.replace(/\s+/g, "-");
       const emojiInput = document.getElementById(
@@ -508,60 +556,18 @@
       const emoji = emojiInput ? emojiInput.value : "📚";
       course.schedule.forEach((entry) => {
         if (!entry.startTime || !entry.endTime) return;
-        const [startH, startM] = entry.startTime.match(/\d+/g).map(Number);
-        const [endH, endM] = entry.endTime.match(/\d+/g).map(Number);
-        const [startHour, startMinute] = convertTo24Hour(
-          startH,
-          startM,
+
+        // Use helper to get minutes (Standard or Ramadan)
+        const { start: startTotalMins, end: endTotalMins } = getAdjustedTimes(
           entry.startTime,
+          entry.endTime,
         );
-        let [endHour, endMinute] = convertTo24Hour(endH, endM, entry.endTime);
 
-        // RAMADAN ALGORITHM START
-        const isRamadan = document.getElementById("ramadanMode")?.value === "on";
-        let finalStartHour = startHour;
-        let finalStartMinute = startMinute;
-        let finalEndHour = endHour;
-        let finalEndMinute = endMinute;
-
-        if (isRamadan) {
-          // Map Standard Start Hour (24h) to Slot Index
-          // 8->1, 9->2, 10->3, 11->4, 13->5, 14->6, 15->7, 16->8
-          const standardToSlot = {
-            8: 1,
-            9: 2,
-            10: 3,
-            11: 4,
-            13: 5,
-            14: 6,
-            15: 7,
-            16: 8,
-          };
-
-          if (standardToSlot[startHour]) {
-            const slot = standardToSlot[startHour];
-            let totalRamadanMinutes = 0;
-
-            if (slot <= 3) {
-              // Morning: 10:00 AM + (Slot-1)*40 mins
-              totalRamadanMinutes = 10 * 60 + (slot - 1) * 40;
-            } else {
-              // Afternoon: 12:30 PM + (Slot-4)*40 mins
-              // 12:30 PM = 750 minutes
-              totalRamadanMinutes = 750 + (slot - 4) * 40;
-            }
-
-            // Calculate new Start Time
-            finalStartHour = Math.floor(totalRamadanMinutes / 60);
-            finalStartMinute = totalRamadanMinutes % 60;
-
-            // Calculate new End Time (Duration fixed to 35 mins per university note)
-            const endMinutes = totalRamadanMinutes + 35;
-            finalEndHour = Math.floor(endMinutes / 60);
-            finalEndMinute = endMinutes % 60;
-          }
-        }
-        // RAMADAN ALGORITHM END
+        // Convert total minutes back to HH, MM for ICS generation
+        const startHour = Math.floor(startTotalMins / 60);
+        const startMinute = startTotalMins % 60;
+        const endHour = Math.floor(endTotalMins / 60);
+        const endMinute = endTotalMins % 60;
 
         entry.days.forEach((dayIndex) => {
           if (!dayMap[dayIndex]) return;
@@ -571,8 +577,8 @@
             firstEventDate.setUTCDate(firstEventDate.getUTCDate() + 1);
           }
           const datePart = `${firstEventDate.getUTCFullYear()}${(firstEventDate.getUTCMonth() + 1).toString().padStart(2, "0")}${firstEventDate.getUTCDate().toString().padStart(2, "0")}`;
-          const startTimePart = `${finalStartHour.toString().padStart(2, "0")}${finalStartMinute.toString().padStart(2, "0")}00`;
-          const endTimePart = `${finalEndHour.toString().padStart(2, "0")}${finalEndMinute.toString().padStart(2, "0")}00`;
+          const startTimePart = `${startHour.toString().padStart(2, "0")}${startMinute.toString().padStart(2, "0")}00`;
+          const endTimePart = `${endHour.toString().padStart(2, "0")}${endMinute.toString().padStart(2, "0")}00`;
           const activityTypeEmoji =
             course.activity === "محاضرة"
               ? "📖"
@@ -603,8 +609,10 @@
       const dailyBounds = {};
       scheduleData.forEach((course) => {
         course.schedule.forEach((entry) => {
-          const startTimeInMinutes = timeStringToMinutes(entry.startTime);
-          const endTimeInMinutes = timeStringToMinutes(entry.endTime);
+          // Use the same helper so driving times match the Ramadan schedule
+          const { start: startTimeInMinutes, end: endTimeInMinutes } =
+            getAdjustedTimes(entry.startTime, entry.endTime);
+
           entry.days.forEach((dayIndex) => {
             if (!dailyBounds[dayIndex]) {
               dailyBounds[dayIndex] = {
