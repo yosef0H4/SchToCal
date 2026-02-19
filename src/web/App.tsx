@@ -283,7 +283,7 @@ function App() {
                   <Calendar className={cn("h-6 w-6", theme.accentColor)} />
                 </div>
                 <h2 className={cn("text-xl font-bold", theme.textClass)}>
-                  {strings.themeTitle} Settings
+                  {strings.settingsTitle}
                 </h2>
               </div>
 
@@ -394,7 +394,9 @@ function App() {
                   <Sparkles className={cn("h-6 w-6", theme.accentColor)} />
                 </div>
                 <div>
-                  <h2 className={cn("text-xl font-bold", theme.textClass)}>Preview</h2>
+                  <h2 className={cn("text-xl font-bold", theme.textClass)}>
+                    {strings.previewTitle}
+                  </h2>
                   {parsed && <p className={cn("text-xs", theme.subTextClass)}>{parsed.studentName}</p>}
                 </div>
               </div>
@@ -404,7 +406,9 @@ function App() {
                   <div className={cn("h-16 w-16 flex items-center justify-center mb-4", theme.iconContainerClass)}>
                     <Clock className={cn("h-8 w-8", theme.subTextClass)} />
                   </div>
-                  <p className={cn("font-medium", theme.subTextClass)}>Upload your schedule HTML to preview.</p>
+                  <p className={cn("font-medium", theme.subTextClass)}>
+                    {strings.previewEmptyHint}
+                  </p>
                 </div>
               ) : (
                 <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0">

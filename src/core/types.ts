@@ -32,6 +32,9 @@ export interface UIStrings {
   noFile: string;
   generatePreview: string;
   themeTitle: string;
+  settingsTitle: string;
+  previewTitle: string;
+  previewEmptyHint: string;
 }
 
 export interface ScheduleEntry {

@@ -46,8 +46,10 @@ function getAdjustedTimes(
     const slot = standardToSlot[sHour];
     if (slot) {
       const ramadanStartMins = slot <= 3 ? 10 * 60 + (slot - 1) * 40 : 750 + (slot - 4) * 40;
+      const originalDuration = Math.max(0, endTotal - startTotal);
+      const ramadanDuration = Math.round(originalDuration * 0.7);
       startTotal = ramadanStartMins;
-      endTotal = ramadanStartMins + 35;
+      endTotal = ramadanStartMins + ramadanDuration;
     }
   }
 

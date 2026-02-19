@@ -34,6 +34,9 @@ export const uiStrings: Record<Lang, UIStrings> = {
     noFile: "لم يتم اختيار ملف",
     generatePreview: "تحليل الجدول",
     themeTitle: "منشئ تقويم الجدول",
+    settingsTitle: "الإعدادات",
+    previewTitle: "المعاينة",
+    previewEmptyHint: "ارفع ملف الجدول HTML لعرض المعاينة.",
   },
   en: {
     semesterStart: "Semester Start:",
@@ -68,5 +71,8 @@ export const uiStrings: Record<Lang, UIStrings> = {
     noFile: "No file selected",
     generatePreview: "Parse Schedule",
     themeTitle: "Schedule Calendar Builder",
+    settingsTitle: "Settings",
+    previewTitle: "Preview",
+    previewEmptyHint: "Upload your schedule HTML to preview.",
   },
 };
