@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "none",
+    "moduleResolution": "node",
+    "strict": true,
+    "alwaysStrict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2020", "DOM"],
+    "outFile": "tamperMonkeyScript/script.js"
+  },
+  "files": [
+    "src/00.userscript.ts",
+    "src/10.types.ts",
+    "src/20.shared.ts",
+    "src/30.state.ts",
+    "src/40.ui.ts",
+    "src/50.schedule.ts"
+  ]
+}
