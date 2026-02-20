@@ -817,6 +817,28 @@ function App() {
                   </div>
                 </div>
               </div>
+
+              <div className={cn("mt-4 border p-4 bg-white/80", theme.borderClass)}>
+                <p className={cn("text-sm font-bold mb-2", theme.textClass)}>
+                  {lang === "ar" ? "طريقة الحصول على ملف الجدول (HTML):" : "How to get your schedule HTML:"}
+                </p>
+                <ol className={cn("text-xs leading-6 list-decimal ps-4", theme.subTextClass)}>
+                  <li>
+                    {lang === "ar" ? "افتح الرابط:" : "Open:"}{" "}
+                    <a
+                      href="https://eserve.psau.edu.sa/ku/ui/student/homeIndex.faces"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="underline font-semibold"
+                    >
+                      https://eserve.psau.edu.sa/ku/ui/student/homeIndex.faces
+                    </a>
+                  </li>
+                  <li>{lang === "ar" ? "اذهب إلى صفحة 'المقررات المسجلة'." : "Go to 'Registered Courses' (المقررات المسجلة)."}</li>
+                  <li>{lang === "ar" ? "اضغط Ctrl+S أو كلك يمين > حفظ باسم، واحفظ الصفحة كملف HTML." : "Press Ctrl+S or right-click > Save as, and save the page as HTML."}</li>
+                  <li>{lang === "ar" ? "ارجع هنا وارفع ملف HTML." : "Come back here and upload that HTML file."}</li>
+                </ol>
+              </div>
             </Card>
 
             {/* Settings */}
