@@ -785,7 +785,12 @@ function App() {
                   </button>
 
                   {!googleClientId && (
-                    <p className={cn("text-xs", theme.subTextClass)}>{strings.syncGoogleUnavailable}</p>
+                    <div className="space-y-1">
+                      <p className={cn("text-xs", theme.subTextClass)}>{strings.syncGoogleUnavailable}</p>
+                      <p className={cn("text-[10px] font-mono", theme.subTextClass)}>
+                        debug: mode={import.meta.env.MODE} hasClientId={String(Boolean(googleClientId))}
+                      </p>
+                    </div>
                   )}
                   {syncStatus && <p className={cn("text-xs font-semibold text-emerald-700")}>{syncStatus}</p>}
                 </div>
