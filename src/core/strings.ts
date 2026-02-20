@@ -28,7 +28,7 @@ export const uiStrings: Record<Lang, UIStrings> = {
     ramadanSchedule: "جدول رمضان:",
     ramadanOff: "بدون تعديل",
     ramadanEngineering: "الهندسة",
-    ramadanFirstYear: "السنة الأولى",
+    ramadanFirstYear: "السنة التحضيرية",
     uploadTitle: "ارفع ملف الجدول (HTML)",
     uploadHint: "احفظ صفحة الجدول من النظام ثم ارفعها هنا.",
     uploadButton: "اختيار ملف HTML",
