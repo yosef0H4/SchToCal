@@ -7,8 +7,9 @@
     "prebuild:tm": "node scripts/embed-assets.mjs",
     "build:tm": "node scripts/build-tm.mjs",
     "build:web": "vite build",
-    "build": "npm run clean && npm run build:tm && npm run build:web",
+    "build": "npm run clean && npm run build:tm && npm run build:web && node -e \"require('fs').copyFileSync('dist/tm/schmaker.user.js','dist/web/schmaker.user.js')\"",
     "dev:web": "vite",
+    "dev": "npm run build:tm && npm run dev:web",
     "preview:web": "vite preview",
     "preview:build": "npm run build && npm run preview:web"
   },

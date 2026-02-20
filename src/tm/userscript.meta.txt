@@ -4,6 +4,6 @@
 // @version      3.0
 // @description  Adds a control panel to download the course schedule as an ICS file. Remembers all your settings. Features an Arabic UI, language toggle, and a user guide.
 // @author       You
-// @match        *://*/*
+// @match        https://eserve.psau.edu.sa/ku/ui/*
 // @grant        none
 // ==/UserScript==

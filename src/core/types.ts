@@ -10,6 +10,7 @@ export interface UIStrings {
   minutesPlaceholder: string;
   drivingEmoji: string;
   downloadIcs: string;
+  downloadTampermonkey: string;
   guide: string;
   reset: string;
   language: string;

@@ -517,13 +517,24 @@ function App() {
             </p>
           </div>
 
-          <button
-            onClick={() => setLang((v) => (v === "ar" ? "en" : "ar"))}
-            className="group flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all border border-black bg-black/5 hover:bg-black/10"
-          >
-            <Languages className={cn("h-4 w-4", theme.accentColor)} />
-            <span>{strings.language}</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="schmaker.user.js"
+              download
+              className="group flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all border border-black bg-black/5 hover:bg-black/10"
+            >
+              <Download className={cn("h-4 w-4", theme.accentColor)} />
+              <span>{strings.downloadTampermonkey}</span>
+            </a>
+
+            <button
+              onClick={() => setLang((v) => (v === "ar" ? "en" : "ar"))}
+              className="group flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all border border-black bg-black/5 hover:bg-black/10"
+            >
+              <Languages className={cn("h-4 w-4", theme.accentColor)} />
+              <span>{strings.language}</span>
+            </button>
+          </div>
         </motion.header>
 
         {/* Error Message */}
