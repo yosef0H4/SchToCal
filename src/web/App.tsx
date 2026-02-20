@@ -319,7 +319,6 @@ function App() {
   const [ramadanMode, setRamadanMode] = useState<RamadanMode>("off");
   const [error, setError] = useState("");
   const [courseEmojis, setCourseEmojis] = useState<Record<string, string>>({});
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = uiStrings[lang];
   const direction = useMemo(() => (lang === "ar" ? "rtl" : "ltr"), [lang]);
@@ -488,7 +487,7 @@ function App() {
   };
 
   return (
-    <div className={cn("min-h-screen font-sans", theme.bgClass, theme.textClass)}>
+    <div className={cn("app-scroll h-screen overflow-y-auto overflow-x-hidden font-sans", theme.bgClass, theme.textClass)}>
       {/* Background Pattern */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div
