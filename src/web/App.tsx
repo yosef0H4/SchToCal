@@ -651,7 +651,7 @@ function App() {
                 </div>
               ) : (
                 <div className="flex-1 space-y-4 overflow-y-auto pr-2 min-h-0">
-                  <div className={cn("border p-2 bg-white", theme.borderClass)}>
+                  <div className={cn("schedule-preview border p-2 bg-white", theme.borderClass)}>
                     <FullCalendar
                       plugins={[timeGridPlugin]}
                       initialView="timeGridWeek"
