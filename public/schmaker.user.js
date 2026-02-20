@@ -32,11 +32,11 @@
       alertDates: "\u0627\u0644\u0631\u062C\u0627\u0621 \u062A\u062D\u062F\u064A\u062F \u062A\u0627\u0631\u064A\u062E \u0628\u062F\u0627\u064A\u0629 \u0648\u0646\u0647\u0627\u064A\u0629 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u062F\u0631\u0627\u0633\u064A \u0623\u0648\u0644\u0627\u064B.",
       alertTable: "\u062C\u062F\u0648\u0644 \u0627\u0644\u0645\u0648\u0627\u062F \u0627\u0644\u062F\u0631\u0627\u0633\u064A\u0629 \u063A\u064A\u0631 \u0645\u0648\u062C\u0648\u062F!",
       guideTitle: "\u062F\u0644\u064A\u0644 \u0627\u0644\u0627\u0633\u062A\u062E\u062F\u0627\u0645",
-      guideStep1: "1. \u0623\u062F\u062E\u0644 \u062A\u0627\u0631\u064A\u062E \u0628\u062F\u0627\u064A\u0629 \u0648\u0646\u0647\u0627\u064A\u0629 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u062F\u0631\u0627\u0633\u064A.",
-      guideStep2: "2. (\u0627\u062E\u062A\u064A\u0627\u0631\u064A) \u0623\u062F\u062E\u0644 \u0648\u0642\u062A \u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0628\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u0648\u0627\u0644\u062F\u0642\u0627\u0626\u0642 \u0644\u0625\u0646\u0634\u0627\u0621 \u0623\u062D\u062F\u0627\u062B \u0644\u0644\u0642\u064A\u0627\u062F\u0629 \u0641\u064A \u0627\u0644\u062A\u0642\u0648\u064A\u0645.",
-      guideStep3: "3. (\u0627\u062E\u062A\u064A\u0627\u0631\u064A) \u064A\u0645\u0643\u0646\u0643 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0625\u064A\u0645\u0648\u062C\u064A \u0627\u0644\u0645\u062E\u0635\u0635 \u0644\u0643\u0644 \u0645\u0627\u062F\u0629 \u062F\u0631\u0627\u0633\u064A\u0629.",
-      guideStep4: "4. \u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0632\u0631 '\u062A\u062D\u0645\u064A\u0644 ICS' \u0644\u062A\u0646\u0632\u064A\u0644 \u0645\u0644\u0641 \u0627\u0644\u062A\u0642\u0648\u064A\u0645.",
-      guideStep5: "5. \u0633\u064A\u062A\u0645 \u062D\u0641\u0638 \u062C\u0645\u064A\u0639 \u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u062A\u0644\u0642\u0627\u0626\u064A\u064B\u0627 \u0641\u064A \u0627\u0644\u0645\u0631\u0629 \u0627\u0644\u0642\u0627\u062F\u0645\u0629.",
+      guideStep1: "1. \u0627\u0641\u062A\u062D https://eserve.psau.edu.sa/ku/ui/student/homeIndex.faces \u0648\u0633\u062C\u0651\u0644 \u0627\u0644\u062F\u062E\u0648\u0644.",
+      guideStep2: "2. \u0627\u0630\u0647\u0628 \u0625\u0644\u0649 \u0635\u0641\u062D\u0629 '\u0627\u0644\u0645\u0642\u0631\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062C\u0644\u0629'.",
+      guideStep3: "3. \u0627\u0636\u063A\u0637 Ctrl+S (\u0623\u0648 \u0643\u0644\u0643 \u064A\u0645\u064A\u0646 > \u062D\u0641\u0638 \u0628\u0627\u0633\u0645) \u0648\u0627\u062D\u0641\u0638 \u0627\u0644\u0635\u0641\u062D\u0629 \u0643\u0645\u0644\u0641 HTML.",
+      guideStep4: "4. \u0627\u0631\u0641\u0639 \u0645\u0644\u0641 HTML \u0647\u0646\u0627 \u0641\u064A SchMaker.",
+      guideStep5: "5. \u0639\u062F\u0651\u0644 \u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u062B\u0645 \u0646\u0632\u0651\u0644 ICS \u0623\u0648 \u0627\u0633\u062A\u062E\u062F\u0645 \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629 \u0645\u0639 Google.",
       guideClose: "\u0625\u063A\u0644\u0627\u0642",
       drivingTo: "\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0625\u0644\u0649 \u0627\u0644\u062C\u0627\u0645\u0639\u0629",
       drivingFrom: "\u0627\u0644\u0639\u0648\u062F\u0629 \u0644\u0644\u0645\u0646\u0632\u0644",
@@ -45,7 +45,7 @@
       ramadanEngineering: "\u0627\u0644\u0647\u0646\u062F\u0633\u0629",
       ramadanFirstYear: "\u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u062A\u062D\u0636\u064A\u0631\u064A\u0629",
       uploadTitle: "\u0627\u0631\u0641\u0639 \u0645\u0644\u0641 \u0627\u0644\u062C\u062F\u0648\u0644 (HTML)",
-      uploadHint: "\u0627\u062D\u0641\u0638 \u0635\u0641\u062D\u0629 \u0627\u0644\u062C\u062F\u0648\u0644 \u0645\u0646 \u0627\u0644\u0646\u0638\u0627\u0645 \u062B\u0645 \u0627\u0631\u0641\u0639\u0647\u0627 \u0647\u0646\u0627.",
+      uploadHint: "\u0627\u0641\u062A\u062D \u0635\u0641\u062D\u0629 \u0627\u0644\u0645\u0642\u0631\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062C\u0644\u0629 \u062B\u0645 \u0627\u062D\u0641\u0638\u0647\u0627 HTML \u0648\u0627\u0631\u0641\u0639\u0647\u0627 \u0647\u0646\u0627.",
       uploadButton: "\u0627\u062E\u062A\u064A\u0627\u0631 \u0645\u0644\u0641 HTML",
       uploadInvalid: "\u0627\u0644\u0645\u0644\u0641 \u0644\u0627 \u064A\u062D\u062A\u0648\u064A \u0639\u0644\u0649 \u062C\u062F\u0648\u0644 \u0635\u0627\u0644\u062D.",
       selectedFile: "\u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0645\u062D\u062F\u062F:",
@@ -77,11 +77,11 @@
       alertDates: "Please select the semester start and end dates first.",
       alertTable: "Schedule table not found!",
       guideTitle: "How to Use",
-      guideStep1: "1. Select the start and end dates for the semester.",
-      guideStep2: "2. (Optional) Enter the driving time in hours and minutes to create calendar events for your commute.",
-      guideStep3: "3. (Optional) You can change the custom emoji for each course.",
-      guideStep4: "4. Click the 'Download ICS' button to get the calendar file.",
-      guideStep5: "5. All settings are saved automatically.",
+      guideStep1: "1. Open https://eserve.psau.edu.sa/ku/ui/student/homeIndex.faces and sign in.",
+      guideStep2: "2. Go to the 'Registered Courses' page (\u0627\u0644\u0645\u0642\u0631\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062C\u0644\u0629).",
+      guideStep3: "3. Press Ctrl+S (or right-click > Save as) and save the page as HTML.",
+      guideStep4: "4. Upload that HTML file here in SchMaker.",
+      guideStep5: "5. Adjust settings, then download ICS or sync to Google Calendar.",
       guideClose: "Close",
       drivingTo: "Driving to College",
       drivingFrom: "Driving Back Home",
@@ -90,7 +90,7 @@
       ramadanEngineering: "Engineering",
       ramadanFirstYear: "1st Year",
       uploadTitle: "Upload Schedule HTML",
-      uploadHint: "Save your schedule page as HTML, then upload it here.",
+      uploadHint: "Open Registered Courses, save as HTML, then upload it here.",
       uploadButton: "Choose HTML File",
       uploadInvalid: "Uploaded file does not contain a valid schedule table.",
       selectedFile: "Selected file:",
@@ -112,6 +112,9 @@
     if (period.includes("\u0645") && h !== 12) hour += 12;
     if (period.includes("\u0635") && h === 12) hour = 0;
     return [hour, m];
+  }
+  function durationMinutes(startTotal, endTotal) {
+    return endTotal >= startTotal ? endTotal - startTotal : endTotal + 1440 - startTotal;
   }
   function getAdjustedTimesInMinutes(startStr, endStr, ramadanMode) {
     const sMatches = startStr.match(/\d+/g);
@@ -147,13 +150,29 @@
       };
       const mappedStart = ramadanMode === "engineering" ? engineeringStarts[sHour] : firstYearStarts[sHour];
       if (mappedStart !== void 0) {
-        const originalDuration = Math.max(0, endTotal - startTotal);
+        const originalDuration = durationMinutes(startTotal, endTotal);
         const ramadanDuration = Math.round(originalDuration * 0.7);
         startTotal = mappedStart;
         endTotal = mappedStart + ramadanDuration;
       }
     }
+    if (ramadanMode === "off" && endTotal <= startTotal) {
+      endTotal += 1440;
+    }
     return { start: startTotal, end: endTotal };
+  }
+  function toIcsLocalDateTimeParts(baseDate, totalMinutes) {
+    const d = new Date(baseDate.getTime());
+    if (totalMinutes < 0 || totalMinutes >= 1440) {
+      const dayShift = Math.floor(totalMinutes / 1440);
+      d.setUTCDate(d.getUTCDate() + dayShift);
+    }
+    const wrapped = (totalMinutes % 1440 + 1440) % 1440;
+    const hour = Math.floor(wrapped / 60);
+    const minute = wrapped % 60;
+    const datePart = `${d.getUTCFullYear()}${(d.getUTCMonth() + 1).toString().padStart(2, "0")}${d.getUTCDate().toString().padStart(2, "0")}`;
+    const timePart = `${hour.toString().padStart(2, "0")}${minute.toString().padStart(2, "0")}00`;
+    return { datePart, timePart };
   }
   function generateIcs(scheduleData, options) {
     const strings = uiStrings[options.lang];
@@ -177,10 +196,6 @@
           entry.endTime,
           options.ramadanMode
         );
-        const startHour = Math.floor(startTotalMins / 60);
-        const startMinute = startTotalMins % 60;
-        const endHour = Math.floor(endTotalMins / 60);
-        const endMinute = endTotalMins % 60;
         entry.days.forEach((dayIndex) => {
           if (!dayMap[dayIndex]) return;
           const dayOfWeek = parseInt(dayIndex, 10) - 1;
@@ -188,17 +203,16 @@
           while (firstEventDate.getUTCDay() !== dayOfWeek) {
             firstEventDate.setUTCDate(firstEventDate.getUTCDate() + 1);
           }
-          const datePart = `${firstEventDate.getUTCFullYear()}${(firstEventDate.getUTCMonth() + 1).toString().padStart(2, "0")}${firstEventDate.getUTCDate().toString().padStart(2, "0")}`;
-          const startTimePart = `${startHour.toString().padStart(2, "0")}${startMinute.toString().padStart(2, "0")}00`;
-          const endTimePart = `${endHour.toString().padStart(2, "0")}${endMinute.toString().padStart(2, "0")}00`;
+          const startParts = toIcsLocalDateTimeParts(firstEventDate, startTotalMins);
+          const endParts = toIcsLocalDateTimeParts(firstEventDate, endTotalMins);
           const activityTypeEmoji = course.activity === "\u0645\u062D\u0627\u0636\u0631\u0629" ? "\u{1F4D6}" : course.activity === "\u062A\u0645\u0627\u0631\u064A\u0646" ? "\u{1F3AF}" : "";
           icsEvents.push(
             [
               "BEGIN:VEVENT",
               `DTSTAMP:${toIcsDate(/* @__PURE__ */ new Date())}`,
               `UID:${sanitizedCode}-${entry.days.join("")}-${Date.now()}${Math.random()}`,
-              `DTSTART;TZID=Asia/Riyadh:${datePart}T${startTimePart}`,
-              `DTEND;TZID=Asia/Riyadh:${datePart}T${endTimePart}`,
+              `DTSTART;TZID=Asia/Riyadh:${startParts.datePart}T${startParts.timePart}`,
+              `DTEND;TZID=Asia/Riyadh:${endParts.datePart}T${endParts.timePart}`,
               `RRULE:FREQ=WEEKLY;UNTIL=${toIcsDate(options.semesterEnd)};BYDAY=${dayMap[dayIndex]}`,
               `SUMMARY:${`${course.courseCode} ${emoji}${activityTypeEmoji}`.trim()}`,
               `LOCATION:${entry.room}`,

@@ -18,6 +18,7 @@ import {
   Car,
   Download,
   CloudUpload,
+  LoaderCircle,
   Languages,
   FileCheck,
   AlertCircle,
@@ -689,6 +690,11 @@ function App() {
           .replace("{deleted}", String(result.deleted))
           .replace("{inserted}", String(result.inserted)),
       );
+      const calendarUrl = "https://calendar.google.com/calendar/u/0/r";
+      window.setTimeout(() => {
+        const opened = window.open(calendarUrl, "_blank", "noopener,noreferrer");
+        if (!opened) window.location.href = calendarUrl;
+      }, 900);
     } catch (err) {
       const message = err instanceof Error ? err.message : strings.syncGoogleFailed;
       setError(`${strings.syncGoogleFailed} ${message}`);
@@ -981,7 +987,7 @@ function App() {
                     )}
                   >
                     {syncBusy ? strings.syncGoogleWorking : strings.syncGoogleCalendar}
-                    <CloudUpload className="h-5 w-5" />
+                    {syncBusy ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <CloudUpload className="h-5 w-5" />}
                   </button>
 
                   {!googleClientId && (
@@ -992,7 +998,12 @@ function App() {
                       </p>
                     </div>
                   )}
-                  {syncStatus && <p className={cn("text-xs font-semibold text-emerald-700")}>{syncStatus}</p>}
+                  {syncStatus && (
+                    <p className={cn("text-xs font-semibold text-emerald-700 flex items-center gap-2")}>
+                      {syncBusy && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
+                      {syncStatus}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
@@ -1032,8 +1043,8 @@ function App() {
                       allDaySlot={false}
                       height={600}
                       expandRows
-                      slotMinTime="07:00:00"
-                      slotMaxTime="22:00:00"
+                      slotMinTime="08:00:00"
+                      slotMaxTime="29:00:00"
                       firstDay={0}
                       hiddenDays={[5, 6]}
                       dayHeaderFormat={{ weekday: "short" }}

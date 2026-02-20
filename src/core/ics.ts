@@ -12,6 +12,10 @@ function convertTo24Hour(h: number, m: number, period: string): [number, number]
   return [hour, m];
 }
 
+function durationMinutes(startTotal: number, endTotal: number): number {
+  return endTotal >= startTotal ? endTotal - startTotal : endTotal + 1440 - startTotal;
+}
+
 export function getAdjustedTimesInMinutes(
   startStr: string,
   endStr: string,
@@ -57,14 +61,37 @@ export function getAdjustedTimesInMinutes(
       ramadanMode === "engineering" ? engineeringStarts[sHour] : firstYearStarts[sHour];
 
     if (mappedStart !== undefined) {
-      const originalDuration = Math.max(0, endTotal - startTotal);
+      const originalDuration = durationMinutes(startTotal, endTotal);
       const ramadanDuration = Math.round(originalDuration * 0.7);
       startTotal = mappedStart;
       endTotal = mappedStart + ramadanDuration;
     }
   }
 
+  if (ramadanMode === "off" && endTotal <= startTotal) {
+    endTotal += 1440;
+  }
+
   return { start: startTotal, end: endTotal };
+}
+
+function toIcsLocalDateTimeParts(baseDate: Date, totalMinutes: number): { datePart: string; timePart: string } {
+  const d = new Date(baseDate.getTime());
+  if (totalMinutes < 0 || totalMinutes >= 1440) {
+    const dayShift = Math.floor(totalMinutes / 1440);
+    d.setUTCDate(d.getUTCDate() + dayShift);
+  }
+
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+  const hour = Math.floor(wrapped / 60);
+  const minute = wrapped % 60;
+  const datePart = `${d.getUTCFullYear()}${(d.getUTCMonth() + 1).toString().padStart(2, "0")}${d
+    .getUTCDate()
+    .toString()
+    .padStart(2, "0")}`;
+  const timePart = `${hour.toString().padStart(2, "0")}${minute.toString().padStart(2, "0")}00`;
+
+  return { datePart, timePart };
 }
 
 export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions): string {
@@ -95,11 +122,6 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
         options.ramadanMode,
       );
 
-      const startHour = Math.floor(startTotalMins / 60);
-      const startMinute = startTotalMins % 60;
-      const endHour = Math.floor(endTotalMins / 60);
-      const endMinute = endTotalMins % 60;
-
       entry.days.forEach((dayIndex) => {
         if (!dayMap[dayIndex]) return;
 
@@ -109,15 +131,8 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
           firstEventDate.setUTCDate(firstEventDate.getUTCDate() + 1);
         }
 
-        const datePart = `${firstEventDate.getUTCFullYear()}${(firstEventDate.getUTCMonth() + 1)
-          .toString()
-          .padStart(2, "0")}${firstEventDate.getUTCDate().toString().padStart(2, "0")}`;
-        const startTimePart = `${startHour.toString().padStart(2, "0")}${startMinute
-          .toString()
-          .padStart(2, "0")}00`;
-        const endTimePart = `${endHour.toString().padStart(2, "0")}${endMinute
-          .toString()
-          .padStart(2, "0")}00`;
+        const startParts = toIcsLocalDateTimeParts(firstEventDate, startTotalMins);
+        const endParts = toIcsLocalDateTimeParts(firstEventDate, endTotalMins);
         const activityTypeEmoji =
           course.activity === "محاضرة" ? "📖" : course.activity === "تمارين" ? "🎯" : "";
 
@@ -126,8 +141,8 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
             "BEGIN:VEVENT",
             `DTSTAMP:${toIcsDate(new Date())}`,
             `UID:${sanitizedCode}-${entry.days.join("")}-${Date.now()}${Math.random()}`,
-            `DTSTART;TZID=Asia/Riyadh:${datePart}T${startTimePart}`,
-            `DTEND;TZID=Asia/Riyadh:${datePart}T${endTimePart}`,
+            `DTSTART;TZID=Asia/Riyadh:${startParts.datePart}T${startParts.timePart}`,
+            `DTEND;TZID=Asia/Riyadh:${endParts.datePart}T${endParts.timePart}`,
             `RRULE:FREQ=WEEKLY;UNTIL=${toIcsDate(options.semesterEnd)};BYDAY=${dayMap[dayIndex]}`,
             `SUMMARY:${`${course.courseCode} ${emoji}${activityTypeEmoji}`.trim()}`,
             `LOCATION:${entry.room}`,
