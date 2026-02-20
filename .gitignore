@@ -11,6 +11,7 @@ pnpm-debug.log*
 *.tsbuildinfo
 dist/
 .vite/
+.env.local
 
 # OS/editor
 .DS_Store

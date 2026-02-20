@@ -301,14 +301,21 @@ function parseAndDownloadIcs(event: MouseEvent): void {
 }
 
 function initializeScript(): void {
+  // 1. Check if our controls already exist to avoid duplicates
+  if (document.getElementById("custom-controls-container")) return;
+
+  // 2. Check if the target location (Print Button) exists
   const printButtonContainer = document.querySelector<HTMLAnchorElement>(
-    "a#myForm\\:printLink",
+    "a[id='myForm:printLink']",
   );
 
+  // If print button doesn't exist, we can't do anything yet
   if (!printButtonContainer) return;
 
+  // 3. Inject Styles if needed
   injectStyles();
 
+  // 4. Create and Inject the Container
   const controlsContainer = document.createElement("div");
   controlsContainer.id = "custom-controls-container";
   controlsContainer.innerHTML = CONTROLS_HTML;
@@ -342,20 +349,31 @@ function initializeScript(): void {
     controlsContainer,
   );
 
+  // 5. Re-apply listeners and state
   injectEmojiInputs();
   loadState();
   addSaveListeners();
+  updateUIText();
 }
 
-const observer = new MutationObserver((_, obs) => {
-  const anchorElement = document.querySelector("a#myForm\\:printLink");
-  if (anchorElement) {
-    obs.disconnect();
+// Permanent observer that never disconnects
+// This handles JSF AJAX updates that may delete our injected UI
+const observer = new MutationObserver(() => {
+  // Check if the Print Link exists (target is present)
+  // AND our Control Panel is MISSING (it was wiped or hasn't been added yet)
+  const printLinkExists = document.querySelector("a[id='myForm:printLink']");
+  const myControlsExist = document.getElementById("custom-controls-container");
+
+  if (printLinkExists && !myControlsExist) {
     initializeScript();
   }
 });
 
+// Observe the entire body for changes (subtree: true is essential for AJAX sites)
 observer.observe(document.body, {
   childList: true,
   subtree: true,
 });
+
+// Try running once immediately in case the page is already loaded
+initializeScript();

@@ -4,6 +4,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import arLocale from "@fullcalendar/core/locales/ar";
 import { EventContentArg, EventInput } from "@fullcalendar/core";
 import { generateIcs, downloadFile, getAdjustedTimesInMinutes } from "../core/ics";
+import { syncScheduleToGoogle, requestAccessToken, ensureSemesterCalendar } from "./googleCalendar";
+import type { BuildSeriesOptions } from "../core/eventModel";
 import { parseScheduleFromHtml } from "../core/parse";
 import { uiStrings } from "../core/strings";
 import { CourseSchedule, Lang, RamadanMode } from "../core/types";
@@ -15,6 +17,7 @@ import {
   Clock,
   Car,
   Download,
+  CloudUpload,
   Languages,
   FileCheck,
   AlertCircle,
@@ -319,6 +322,8 @@ function App() {
   const [ramadanMode, setRamadanMode] = useState<RamadanMode>("off");
   const [error, setError] = useState("");
   const [courseEmojis, setCourseEmojis] = useState<Record<string, string>>({});
+  const [syncStatus, setSyncStatus] = useState<string>("");
+  const [syncBusy, setSyncBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = uiStrings[lang];
   const direction = useMemo(() => (lang === "ar" ? "rtl" : "ltr"), [lang]);
@@ -326,6 +331,7 @@ function App() {
     (parseInt(driveToH || "0", 10) * 60) + parseInt(driveToM || "0", 10);
   const drivingTimeFrom =
     (parseInt(driveFromH || "0", 10) * 60) + parseInt(driveFromM || "0", 10);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
   const weeklyEvents = useMemo(
     () =>
       parsed
@@ -484,6 +490,58 @@ function App() {
       ics,
       "text/calendar"
     );
+  };
+
+  const onSyncGoogle = async () => {
+    if (!parsed) return;
+    if (!googleClientId) {
+      setError(strings.syncGoogleUnavailable);
+      return;
+    }
+    if (!semesterStart || !semesterEnd) {
+      setError(strings.alertDates);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setError("");
+    setSyncBusy(true);
+    setSyncStatus(strings.syncGoogleWorking);
+
+    try {
+      const options: BuildSeriesOptions = {
+        semesterStart: new Date(`${semesterStart}T00:00:00Z`),
+        semesterEnd: new Date(`${semesterEnd}T23:59:59Z`),
+        drivingTimeTo,
+        drivingTimeFrom,
+        drivingEmoji,
+        ramadanMode,
+        lang,
+        courseEmojis,
+      };
+
+      const accessToken = await requestAccessToken(googleClientId);
+      const semesterLabel = `SchToCal - ${semesterStart} to ${semesterEnd}`;
+      const calendar = await ensureSemesterCalendar(accessToken, semesterLabel);
+      const result = await syncScheduleToGoogle({
+        accessToken,
+        calendarId: calendar.id,
+        scheduleData: parsed.scheduleData,
+        options,
+      });
+
+      setSyncStatus(
+        strings.syncGoogleDone
+          .replace("{deleted}", String(result.deleted))
+          .replace("{inserted}", String(result.inserted)),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : strings.syncGoogleFailed;
+      setError(`${strings.syncGoogleFailed} ${message}`);
+      setSyncStatus("");
+    } finally {
+      setSyncBusy(false);
+    }
   };
 
   return (
@@ -700,18 +758,37 @@ function App() {
               </div>
 
               <div className="mt-8">
-                <button
-                  onClick={onDownload}
-                  disabled={!parsed}
-                  className={cn(
-                    "w-full py-4 font-bold text-lg transition-all flex items-center justify-center gap-2",
-                    theme.buttonClass,
-                    !parsed && "opacity-50 cursor-not-allowed grayscale"
+                <div className="grid gap-3">
+                  <button
+                    onClick={onDownload}
+                    disabled={!parsed}
+                    className={cn(
+                      "w-full py-4 font-bold text-lg transition-all flex items-center justify-center gap-2",
+                      theme.buttonClass,
+                      !parsed && "opacity-50 cursor-not-allowed grayscale"
+                    )}
+                  >
+                    {strings.downloadIcs}
+                    <Download className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    onClick={onSyncGoogle}
+                    disabled={!parsed || !googleClientId || syncBusy}
+                    className={cn(
+                      "w-full py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 border border-black bg-white hover:bg-gray-50",
+                      (!parsed || !googleClientId || syncBusy) && "opacity-50 cursor-not-allowed grayscale"
+                    )}
+                  >
+                    {syncBusy ? strings.syncGoogleWorking : strings.syncGoogleCalendar}
+                    <CloudUpload className="h-5 w-5" />
+                  </button>
+
+                  {!googleClientId && (
+                    <p className={cn("text-xs", theme.subTextClass)}>{strings.syncGoogleUnavailable}</p>
                   )}
-                >
-                  {strings.downloadIcs}
-                  <Download className="h-5 w-5" />
-                </button>
+                  {syncStatus && <p className={cn("text-xs font-semibold text-emerald-700")}>{syncStatus}</p>}
+                </div>
               </div>
             </Card>
           </div>

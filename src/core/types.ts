@@ -11,6 +11,11 @@ export interface UIStrings {
   drivingEmoji: string;
   downloadIcs: string;
   downloadTampermonkey: string;
+  syncGoogleCalendar: string;
+  syncGoogleUnavailable: string;
+  syncGoogleWorking: string;
+  syncGoogleDone: string;
+  syncGoogleFailed: string;
   guide: string;
   reset: string;
   language: string;

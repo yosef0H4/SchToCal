@@ -32,6 +32,20 @@ Build:
 npm run build:web
 ```
 
+Google Calendar sync setup (web app):
+1. Create a Google Cloud project.
+2. Enable `Google Calendar API`.
+3. Configure OAuth consent screen (External or Internal).
+4. Create an OAuth Client ID of type `Web application`.
+5. Add Authorized JavaScript origins:
+   - `http://localhost:5173`
+   - your deployed origin (for GitHub Pages this is usually `https://<username>.github.io`)
+6. Create `.env.local` in repo root:
+```bash
+VITE_GOOGLE_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
+```
+7. Run web app and use `Sync to Google Calendar`.
+
 ## Tampermonkey Script
 Source files:
 - `src/tm/main.ts`
@@ -53,4 +67,3 @@ On push to `master`/`main`, it builds and deploys `dist/web` to GitHub Pages.
 Required setting:
 1. Repository Settings -> Pages
 2. Source: `GitHub Actions`
-

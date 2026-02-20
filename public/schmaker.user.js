@@ -21,6 +21,11 @@
       drivingEmoji: "\u0625\u064A\u0645\u0648\u062C\u064A \u0627\u0644\u0642\u064A\u0627\u062F\u0629:",
       downloadIcs: "\u062A\u062D\u0645\u064A\u0644 ICS",
       downloadTampermonkey: "\u062A\u062D\u0645\u064A\u0644 \u0633\u0643\u0631\u064A\u0628\u062A \u062A\u0645\u0628\u0631\u0645\u0627\u0646\u0643\u064A",
+      syncGoogleCalendar: "\u0645\u0632\u0627\u0645\u0646\u0629 \u0645\u0639 \u062A\u0642\u0648\u064A\u0645 Google",
+      syncGoogleUnavailable: "\u0623\u0636\u0641 VITE_GOOGLE_CLIENT_ID \u0644\u062A\u0641\u0639\u064A\u0644 \u0645\u0632\u0627\u0645\u0646\u0629 Google.",
+      syncGoogleWorking: "\u062C\u0627\u0631\u064A \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629 \u0645\u0639 Google Calendar...",
+      syncGoogleDone: "\u0627\u0643\u062A\u0645\u0644\u062A \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629: \u062A\u0645 \u062D\u0630\u0641 {deleted} \u0648\u0625\u0636\u0627\u0641\u0629 {inserted} \u062D\u062F\u062B.",
+      syncGoogleFailed: "\u0641\u0634\u0644\u062A \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629 \u0645\u0639 Google Calendar.",
       guide: "\u062F\u0644\u064A\u0644",
       reset: "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646",
       language: "English",
@@ -61,6 +66,11 @@
       drivingEmoji: "Driving Emoji:",
       downloadIcs: "Download ICS",
       downloadTampermonkey: "Download Tampermonkey Script",
+      syncGoogleCalendar: "Sync to Google Calendar",
+      syncGoogleUnavailable: "Set VITE_GOOGLE_CLIENT_ID to enable Google sync.",
+      syncGoogleWorking: "Syncing with Google Calendar...",
+      syncGoogleDone: "Sync complete: deleted {deleted}, inserted {inserted} events.",
+      syncGoogleFailed: "Google Calendar sync failed.",
       guide: "Guide",
       reset: "Reset",
       language: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
@@ -683,8 +693,9 @@
     );
   }
   function initializeScript() {
+    if (document.getElementById("custom-controls-container")) return;
     const printButtonContainer = document.querySelector(
-      "a#myForm\\:printLink"
+      "a[id='myForm:printLink']"
     );
     if (!printButtonContainer) return;
     injectStyles();
@@ -715,11 +726,12 @@
     injectEmojiInputs();
     loadState();
     addSaveListeners();
+    updateUIText();
   }
-  var observer = new MutationObserver((_, obs) => {
-    const anchorElement = document.querySelector("a#myForm\\:printLink");
-    if (anchorElement) {
-      obs.disconnect();
+  var observer = new MutationObserver(() => {
+    const printLinkExists = document.querySelector("a[id='myForm:printLink']");
+    const myControlsExist = document.getElementById("custom-controls-container");
+    if (printLinkExists && !myControlsExist) {
       initializeScript();
     }
   });
@@ -727,4 +739,5 @@
     childList: true,
     subtree: true
   });
+  initializeScript();
 })();
