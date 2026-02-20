@@ -658,6 +658,7 @@ function App() {
     setError("");
     setSyncBusy(true);
     setSyncStatus(strings.syncGoogleWorking);
+    const calendarTab = window.open("", "_blank", "noopener,noreferrer");
 
     try {
       const options: BuildSeriesOptions = {
@@ -692,10 +693,14 @@ function App() {
       );
       const calendarUrl = "https://calendar.google.com/calendar/u/0/r";
       window.setTimeout(() => {
-        const opened = window.open(calendarUrl, "_blank", "noopener,noreferrer");
-        if (!opened) window.location.href = calendarUrl;
+        if (calendarTab && !calendarTab.closed) {
+          calendarTab.location.href = calendarUrl;
+        }
       }, 900);
     } catch (err) {
+      if (calendarTab && !calendarTab.closed) {
+        calendarTab.close();
+      }
       const message = err instanceof Error ? err.message : strings.syncGoogleFailed;
       setError(`${strings.syncGoogleFailed} ${message}`);
       setSyncStatus("");
@@ -998,12 +1003,7 @@ function App() {
                       </p>
                     </div>
                   )}
-                  {syncStatus && (
-                    <p className={cn("text-xs font-semibold text-emerald-700 flex items-center gap-2")}>
-                      {syncBusy && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-                      {syncStatus}
-                    </p>
-                  )}
+                  {syncStatus && <p className={cn("text-xs font-semibold text-emerald-700")}>{syncStatus}</p>}
                 </div>
               </div>
             </Card>
@@ -1043,7 +1043,7 @@ function App() {
                       allDaySlot={false}
                       height={600}
                       expandRows
-                      slotMinTime="08:00:00"
+                      slotMinTime="06:00:00"
                       slotMaxTime="29:00:00"
                       firstDay={0}
                       hiddenDays={[5, 6]}

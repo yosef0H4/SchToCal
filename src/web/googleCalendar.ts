@@ -9,7 +9,8 @@ import {
 import { CourseSchedule } from "../core/types";
 
 const GSI_SRC = "https://accounts.google.com/gsi/client";
-const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.app.created";
+const CALENDAR_SCOPE =
+  "https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.calendarlist.readonly";
 
 const TAG_APP_KEY = "schmakerApp";
 const TAG_APP_VALUE = "schmaker";
@@ -192,6 +193,24 @@ export async function ensureSemesterCalendar(
   accessToken: string,
   semesterLabel: string,
 ): Promise<{ id: string; summary: string }> {
+  // First try to discover an existing semester calendar by name.
+  // This works across devices/sessions and avoids duplicates.
+  try {
+    const calendars = await fetchAllCalendarItems(
+      accessToken,
+      `/users/me/calendarList?showHidden=true&maxResults=250`,
+    );
+    const bySummary = calendars.find((c) => c.summary === semesterLabel && c.id);
+    if (bySummary?.id) {
+      const cache = loadCalendarIdCache();
+      cache[semesterLabel] = bySummary.id;
+      saveCalendarIdCache(cache);
+      return { id: bySummary.id, summary: bySummary.summary ?? semesterLabel };
+    }
+  } catch {
+    // If calendar list lookup fails (scope/user policy), continue with cache/create fallback.
+  }
+
   const cache = loadCalendarIdCache();
   const cachedId = cache[semesterLabel];
   if (cachedId) {
