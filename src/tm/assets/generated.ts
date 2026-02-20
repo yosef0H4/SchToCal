@@ -22,7 +22,22 @@ export const CONTROLS_HTML = `<div class="sm-field sm-col">
 </div>
 <div class="sm-field sm-col">
   <label for="drivingEmoji" id="labelDrivingEmoji"></label>
-  <input type="text" id="drivingEmoji" class="save-state sm-input sm-emoji" value="🚗" />
+  <div class="sm-row">
+    <input type="text" id="drivingEmoji" class="save-state sm-input sm-emoji" value="🚗" />
+    <select id="drivingColorId" class="save-state sm-input sm-color-select">
+      <option value="1">Lavender</option>
+      <option value="2">Sage</option>
+      <option value="3">Grape</option>
+      <option value="4">Flamingo</option>
+      <option value="5">Banana</option>
+      <option value="6">Tangerine</option>
+      <option value="7">Peacock</option>
+      <option value="8">Graphite</option>
+      <option value="9">Blueberry</option>
+      <option value="10">Basil</option>
+      <option value="11">Tomato</option>
+    </select>
+  </div>
 </div>
 <div class="sm-field sm-col">
   <label id="labelRamadanMode" for="ramadanMode">Ramadan Schedule</label>
@@ -75,6 +90,11 @@ export const USERSCRIPT_CSS = `#custom-controls-container {
 #custom-controls-container .sm-emoji {
   width: 50px;
   text-align: center;
+}
+
+#custom-controls-container .sm-color-select {
+  min-width: 96px;
+  font-size: 11px;
 }
 
 .sm-button-wrapper {

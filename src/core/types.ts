@@ -83,4 +83,6 @@ export interface Prefs {
   lang: Lang;
   values: Record<string, string>;
   courseEmojis: Record<string, string>;
+  courseColors?: Record<string, string>;
+  drivingColorId?: string;
 }

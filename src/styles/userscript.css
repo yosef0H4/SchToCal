@@ -42,6 +42,11 @@
   text-align: center;
 }
 
+#custom-controls-container .sm-color-select {
+  min-width: 96px;
+  font-size: 11px;
+}
+
 .sm-button-wrapper {
   display: flex;
   gap: 10px;

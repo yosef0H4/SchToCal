@@ -21,7 +21,7 @@ import {
   Languages,
   FileCheck,
   AlertCircle,
-  Sparkles,
+  Eye,
   ChevronDown,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -173,6 +173,87 @@ type ParseState = {
 };
 
 const WEB_PREFS_KEY = "scheduleWebPrefs";
+const GOOGLE_COLOR_OPTIONS = [
+  { id: "1", labelAr: "خزامي", labelEn: "Lavender", hex: "#7986cb" },
+  { id: "2", labelAr: "مريمية", labelEn: "Sage", hex: "#33b679" },
+  { id: "3", labelAr: "عنب", labelEn: "Grape", hex: "#8e24aa" },
+  { id: "4", labelAr: "فلامنغو", labelEn: "Flamingo", hex: "#e67c73" },
+  { id: "5", labelAr: "موز", labelEn: "Banana", hex: "#f6c026" },
+  { id: "6", labelAr: "يوسفي", labelEn: "Tangerine", hex: "#f4511e" },
+  { id: "7", labelAr: "طاووسي", labelEn: "Peacock", hex: "#039be5" },
+  { id: "8", labelAr: "جرافيت", labelEn: "Graphite", hex: "#616161" },
+  { id: "9", labelAr: "توت", labelEn: "Blueberry", hex: "#3f51b5" },
+  { id: "10", labelAr: "ريحان", labelEn: "Basil", hex: "#0b8043" },
+  { id: "11", labelAr: "طماطم", labelEn: "Tomato", hex: "#d50000" },
+] as const;
+const GOOGLE_COLOR_IDS = GOOGLE_COLOR_OPTIONS.map((opt) => opt.id);
+const PREFERRED_CLASS_EMOJIS = [
+  "📚",
+  "🖥️",
+  "🌍",
+  "🧪",
+  "📐",
+  "📈",
+  "🧠",
+  "💻",
+  "📝",
+  "🧬",
+  "⚙️",
+  "🏛️",
+  "🔬",
+  "🗣️",
+  "📊",
+  "🧮",
+  "⚛️",
+  "📖",
+  "🛰️",
+] as const;
+
+function colorHexById(colorId: string): string {
+  return GOOGLE_COLOR_OPTIONS.find((c) => c.id === colorId)?.hex ?? "#7986cb";
+}
+
+function isValidColorId(colorId: string): boolean {
+  return GOOGLE_COLOR_IDS.includes(colorId);
+}
+
+function shuffledGoogleColorIds(): string[] {
+  const shuffled = [...GOOGLE_COLOR_IDS];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function randomColorSelectionForCourses(courseKeys: string[]): { courseColors: Record<string, string>; drivingColorId: string } {
+  const uniqueKeys = [...new Set(courseKeys)];
+  const shuffled = shuffledGoogleColorIds();
+  const courseColors: Record<string, string> = {};
+
+  uniqueKeys.forEach((key, index) => {
+    courseColors[key] = shuffled[index % shuffled.length];
+  });
+
+  const drivingColorId = shuffled[uniqueKeys.length % shuffled.length];
+  return { courseColors, drivingColorId };
+}
+
+function randomEmojiSelectionForCourses(courseKeys: string[]): Record<string, string> {
+  const uniqueKeys = [...new Set(courseKeys)];
+  const shuffled = [...PREFERRED_CLASS_EMOJIS];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const courseEmojis: Record<string, string> = {};
+  uniqueKeys.forEach((key, index) => {
+    courseEmojis[key] = shuffled[index % shuffled.length];
+  });
+
+  return courseEmojis;
+}
 
 function getWeekStartSunday(date: Date): Date {
   const d = new Date(date);
@@ -184,6 +265,8 @@ function getWeekStartSunday(date: Date): Date {
 function buildWeeklyPreviewEvents(
   courses: CourseSchedule[],
   courseEmojis: Record<string, string>,
+  courseColors: Record<string, string>,
+  drivingColorId: string,
   ramadanMode: RamadanMode,
   drivingTimeTo: number,
   drivingTimeFrom: number,
@@ -197,6 +280,7 @@ function buildWeeklyPreviewEvents(
   courses.forEach((course) => {
     const sanitizedCode = course.courseCode.replace(/\s+/g, "-");
     const emoji = courseEmojis[sanitizedCode] ?? "📚";
+    const courseColorHex = colorHexById(courseColors[sanitizedCode] ?? "1");
 
     course.schedule.forEach((entry, entryIndex) => {
       if (!entry.startTime || !entry.endTime) return;
@@ -231,6 +315,9 @@ function buildWeeklyPreviewEvents(
           title: `${emoji} ${course.courseCode}`,
           start: startDate,
           end: endDate,
+          backgroundColor: courseColorHex,
+          borderColor: courseColorHex,
+          textColor: "#ffffff",
           extendedProps: {
             room: entry.room,
             activity: course.activity,
@@ -242,6 +329,7 @@ function buildWeeklyPreviewEvents(
   });
 
   if (drivingTimeTo > 0 || drivingTimeFrom > 0) {
+    const drivingColorHex = colorHexById(drivingColorId);
     const dailyBounds: Record<string, { start: number; end: number }> = {};
 
     courses.forEach((course) => {
@@ -283,6 +371,9 @@ function buildWeeklyPreviewEvents(
           start: startDate,
           end: endDate,
           classNames: ["fc-driving-event"],
+          backgroundColor: drivingColorHex,
+          borderColor: drivingColorHex,
+          textColor: "#ffffff",
         });
       }
 
@@ -297,6 +388,9 @@ function buildWeeklyPreviewEvents(
           start: startDate,
           end: endDate,
           classNames: ["fc-driving-event"],
+          backgroundColor: drivingColorHex,
+          borderColor: drivingColorHex,
+          textColor: "#ffffff",
         });
       }
     });
@@ -322,6 +416,8 @@ function App() {
   const [ramadanMode, setRamadanMode] = useState<RamadanMode>("off");
   const [error, setError] = useState("");
   const [courseEmojis, setCourseEmojis] = useState<Record<string, string>>({});
+  const [courseColors, setCourseColors] = useState<Record<string, string>>({});
+  const [drivingColorId, setDrivingColorId] = useState("1");
   const [syncStatus, setSyncStatus] = useState<string>("");
   const [syncBusy, setSyncBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -338,6 +434,8 @@ function App() {
         ? buildWeeklyPreviewEvents(
           parsed.scheduleData,
           courseEmojis,
+          courseColors,
+          drivingColorId,
           ramadanMode,
           drivingTimeTo,
           drivingTimeFrom,
@@ -349,6 +447,8 @@ function App() {
     [
       parsed,
       courseEmojis,
+      courseColors,
+      drivingColorId,
       ramadanMode,
       drivingTimeTo,
       drivingTimeFrom,
@@ -375,6 +475,8 @@ function App() {
         drivingEmoji?: string;
         ramadanMode?: boolean | RamadanMode;
         courseEmojis?: Record<string, string>;
+        courseColors?: Record<string, string>;
+        drivingColorId?: string;
       };
 
       if (prefs.lang === "ar" || prefs.lang === "en") setLang(prefs.lang);
@@ -393,6 +495,12 @@ function App() {
       }
       if (prefs.courseEmojis && typeof prefs.courseEmojis === "object") {
         setCourseEmojis(prefs.courseEmojis);
+      }
+      if (prefs.courseColors && typeof prefs.courseColors === "object") {
+        setCourseColors(prefs.courseColors);
+      }
+      if (typeof prefs.drivingColorId === "string" && isValidColorId(prefs.drivingColorId)) {
+        setDrivingColorId(prefs.drivingColorId);
       }
 
       if (typeof prefs.rawHtml === "string" && prefs.rawHtml.trim()) {
@@ -419,6 +527,8 @@ function App() {
       drivingEmoji,
       ramadanMode,
       courseEmojis,
+      courseColors,
+      drivingColorId,
     };
     localStorage.setItem(WEB_PREFS_KEY, JSON.stringify(prefs));
   }, [
@@ -434,7 +544,43 @@ function App() {
     drivingEmoji,
     ramadanMode,
     courseEmojis,
+    courseColors,
+    drivingColorId,
   ]);
+
+  useEffect(() => {
+    if (!parsed) return;
+    const keys = [...new Set(parsed.scheduleData.map((c) => c.courseCode.replace(/\s+/g, "-")))];
+    const hasMissingCourseColor = keys.some((key) => !isValidColorId(courseColors[key] ?? ""));
+    const missingDrivingColor = !isValidColorId(drivingColorId);
+    if (!hasMissingCourseColor && !missingDrivingColor) return;
+
+    const randomized = randomColorSelectionForCourses(keys);
+    setCourseColors((prev) => {
+      const next = { ...randomized.courseColors };
+      keys.forEach((key) => {
+        if (isValidColorId(prev[key] ?? "")) next[key] = prev[key];
+      });
+      return next;
+    });
+    if (missingDrivingColor) setDrivingColorId(randomized.drivingColorId);
+  }, [parsed, courseColors, drivingColorId]);
+
+  useEffect(() => {
+    if (!parsed) return;
+    const keys = [...new Set(parsed.scheduleData.map((c) => c.courseCode.replace(/\s+/g, "-")))];
+    const hasMissingEmoji = keys.some((key) => !(courseEmojis[key] ?? "").trim());
+    if (!hasMissingEmoji) return;
+
+    const randomized = randomEmojiSelectionForCourses(keys);
+    setCourseEmojis((prev) => {
+      const next = { ...randomized };
+      keys.forEach((key) => {
+        if ((prev[key] ?? "").trim()) next[key] = prev[key];
+      });
+      return next;
+    });
+  }, [parsed, courseEmojis]);
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -452,12 +598,16 @@ function App() {
         setError(strings.uploadInvalid);
         setParsed(null);
       } else {
-        const emojiMap: Record<string, string> = {};
+        const colorKeys: string[] = [];
         result.scheduleData.forEach((course) => {
           const key = course.courseCode.replace(/\s+/g, "-");
-          emojiMap[key] = emojiMap[key] ?? "📚";
+          colorKeys.push(key);
         });
+        const emojiMap = randomEmojiSelectionForCourses(colorKeys);
+        const randomColors = randomColorSelectionForCourses(colorKeys);
         setCourseEmojis(emojiMap);
+        setCourseColors(randomColors.courseColors);
+        setDrivingColorId(randomColors.drivingColorId);
         setParsed(result);
       }
     };
@@ -528,6 +678,10 @@ function App() {
         calendarId: calendar.id,
         scheduleData: parsed.scheduleData,
         options,
+        colorOverrides: {
+          courseColors,
+          drivingColorId,
+        },
       });
 
       setSyncStatus(
@@ -746,12 +900,35 @@ function App() {
                     </InputGroup>
 
                     <InputGroup label={strings.drivingEmoji} icon={Car}>
-                      <StyledInput
-                        type="text"
-                        value={drivingEmoji}
-                        onChange={(e) => setDrivingEmoji(e.target.value)}
-                        className="text-center"
-                      />
+                      <div className="flex gap-2">
+                        <StyledInput
+                          type="text"
+                          value={drivingEmoji}
+                          onChange={(e) => setDrivingEmoji(e.target.value)}
+                          className="text-center"
+                        />
+                        <select
+                          value={drivingColorId}
+                          onChange={(e) => setDrivingColorId(e.target.value)}
+                          className={cn(
+                            "h-12 px-3 min-w-[8.5rem] border outline-none transition-all duration-300 bg-white",
+                            theme.borderClass,
+                            theme.textClass
+                          )}
+                          style={{ borderColor: colorHexById(drivingColorId) }}
+                        >
+                          {GOOGLE_COLOR_OPTIONS.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {lang === "ar" ? option.labelAr : option.labelEn}
+                            </option>
+                          ))}
+                        </select>
+                        <span
+                          className="h-12 w-5 border border-black"
+                          style={{ backgroundColor: colorHexById(drivingColorId) }}
+                          title={lang === "ar" ? "لون القيادة" : "Driving color"}
+                        />
+                      </div>
                     </InputGroup>
                   </div>
                 </div>
@@ -776,7 +953,8 @@ function App() {
                     onClick={onSyncGoogle}
                     disabled={!parsed || !googleClientId || syncBusy}
                     className={cn(
-                      "w-full py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 border border-black bg-white hover:bg-gray-50",
+                      "w-full py-4 font-bold text-lg transition-all flex items-center justify-center gap-2",
+                      theme.buttonSecondaryClass,
                       (!parsed || !googleClientId || syncBusy) && "opacity-50 cursor-not-allowed grayscale"
                     )}
                   >
@@ -803,7 +981,7 @@ function App() {
             <Card delay={0.3} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className={cn("p-2.5", theme.iconContainerClass)}>
-                  <Sparkles className={cn("h-6 w-6", theme.accentColor)} />
+                  <Eye className={cn("h-6 w-6", theme.accentColor)} />
                 </div>
                 <div>
                   <h2 className={cn("text-xl font-bold", theme.textClass)}>
@@ -868,12 +1046,36 @@ function App() {
                             theme.borderClass,
                             "bg-white hover:bg-gray-50 shadow-sm"
                           )}
+                          style={{ borderTopWidth: 4, borderTopColor: colorHexById(courseColors[key] ?? "1") }}
                         >
                           <div className={cn("h-12 w-12 flex items-center justify-center border shrink-0", theme.borderClass, theme.cardInnerBg)}>
                             <input
                               className="w-full h-full bg-transparent text-center text-2xl focus:outline-none cursor-pointer"
                               value={courseEmojis[key] ?? "📚"}
                               onChange={(e) => setCourseEmojis((prev) => ({ ...prev, [key]: e.target.value }))}
+                            />
+                          </div>
+                          <div className="shrink-0">
+                            <select
+                              value={courseColors[key] ?? ""}
+                              onChange={(e) => setCourseColors((prev) => ({ ...prev, [key]: e.target.value }))}
+                              className={cn(
+                                "h-12 px-2 text-xs border outline-none bg-white",
+                                theme.borderClass,
+                                theme.textClass
+                              )}
+                              style={{ borderColor: colorHexById(courseColors[key] ?? "1") }}
+                              title={lang === "ar" ? "لون Google" : "Google color"}
+                            >
+                              {GOOGLE_COLOR_OPTIONS.map((option) => (
+                                <option key={option.id} value={option.id}>
+                                  {lang === "ar" ? option.labelAr : option.labelEn}
+                                </option>
+                              ))}
+                            </select>
+                            <div
+                              className="mt-1 h-1.5 w-full border border-black"
+                              style={{ backgroundColor: colorHexById(courseColors[key] ?? "1") }}
                             />
                           </div>
 

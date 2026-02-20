@@ -220,8 +220,7 @@ body::-webkit-scrollbar-corner {
 }
 
 .fc-driving-event {
-  background-color: #34a853 !important;
-  border-color: #000 !important;
+  border-color: transparent !important;
 }
 
 /* Force styled scrollbar on app container instead of browser viewport scrollbar */

@@ -16,6 +16,9 @@ const TAG_APP_VALUE = "schmaker";
 const TAG_SEMESTER_KEY = "schmakerSemester";
 const TAG_VERSION_KEY = "schmakerVersion";
 const TAG_VERSION_VALUE = "1";
+const GOOGLE_EVENT_COLOR_IDS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"] as const;
+
+type GoogleColorId = (typeof GOOGLE_EVENT_COLOR_IDS)[number];
 
 interface GoogleTokenResponse {
   access_token?: string;
@@ -209,15 +212,60 @@ export async function syncScheduleToGoogle(params: {
   calendarId: string;
   scheduleData: CourseSchedule[];
   options: BuildSeriesOptions;
+  colorOverrides?: {
+    courseColors?: Record<string, string>;
+    drivingColorId?: string;
+  };
 }): Promise<{ deleted: number; inserted: number }> {
   const semesterTag = `${params.options.semesterStart.toISOString().slice(0, 10)}_${params.options.semesterEnd.toISOString().slice(0, 10)}`;
   const deleted = await replaceTaggedEvents(params.accessToken, params.calendarId, semesterTag);
 
   const series = buildRecurringSeries(params.scheduleData, params.options);
+  const colorByGroup = new Map<string, string>();
+  const shuffledColorIds: GoogleColorId[] = [...GOOGLE_EVENT_COLOR_IDS];
+  for (let i = shuffledColorIds.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledColorIds[i], shuffledColorIds[j]] = [shuffledColorIds[j], shuffledColorIds[i]];
+  }
+
+  const usedColorIds = new Set<GoogleColorId>();
+  const validColorId = (value?: string): GoogleColorId | undefined =>
+    GOOGLE_EVENT_COLOR_IDS.find((id) => id === value);
+
+  const drivingOverride = validColorId(params.colorOverrides?.drivingColorId);
+  if (drivingOverride) {
+    colorByGroup.set("driving", drivingOverride);
+    usedColorIds.add(drivingOverride);
+  }
+
+  const overrideCourseColors = params.colorOverrides?.courseColors ?? {};
+  Object.entries(overrideCourseColors).forEach(([courseCode, colorId]) => {
+    const valid = validColorId(colorId);
+    if (!valid) return;
+    colorByGroup.set(courseCode, valid);
+    usedColorIds.add(valid);
+  });
+
+  const availableColorIds = shuffledColorIds.filter((id) => !usedColorIds.has(id));
+  let nextColorIndex = 0;
+  const colorForGroup = (group?: string): GoogleColorId | undefined => {
+    if (!group) return undefined;
+
+    const existing = colorByGroup.get(group) as GoogleColorId | undefined;
+    if (existing) return existing;
+
+    if (nextColorIndex >= availableColorIds.length) return undefined;
+    const assigned = availableColorIds[nextColorIndex];
+    nextColorIndex += 1;
+    colorByGroup.set(group, assigned);
+    return assigned;
+  };
+
   let inserted = 0;
 
   for (const s of series) {
     const firstDate = firstOccurrenceDate(params.options.semesterStart, s.dayIndex);
+    const colorId = colorForGroup(s.colorGroup);
     const payload = {
       summary: s.summary,
       location: s.location ?? "",
@@ -234,6 +282,7 @@ export async function syncScheduleToGoogle(params: {
         `RRULE:FREQ=WEEKLY;UNTIL=${toUntilStamp(params.options.semesterEnd)};BYDAY=${DAY_MAP[s.dayIndex]}`,
       ],
       transparency: s.transparency ?? "opaque",
+      ...(colorId ? { colorId } : {}),
       extendedProperties: {
         private: {
           [TAG_APP_KEY]: TAG_APP_VALUE,

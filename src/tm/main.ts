@@ -28,17 +28,26 @@ function injectStyles(): void {
 
 function saveState(): void {
   const courseEmojis: Record<string, string> = {};
+  const courseColors: Record<string, string> = {};
   document
     .querySelectorAll<HTMLInputElement>('input[id^="emoji-input-"]')
     .forEach((input) => {
       const key = input.id.replace("emoji-input-", "");
       courseEmojis[key] = input.value;
     });
+  document
+    .querySelectorAll<HTMLSelectElement>('select[id^="color-input-"]')
+    .forEach((select) => {
+      const key = select.id.replace("color-input-", "");
+      courseColors[key] = select.value;
+    });
 
   const prefs: Prefs = {
     lang: currentLanguage,
     values: {},
     courseEmojis,
+    courseColors,
+    drivingColorId: byId<HTMLSelectElement>("drivingColorId")?.value ?? "",
   };
 
   document
@@ -108,6 +117,16 @@ function loadState(): void {
       const input = byId<HTMLInputElement>(`emoji-input-${sanitizedCode}`);
       if (input) input.value = parsed.courseEmojis?.[sanitizedCode] ?? input.value;
     });
+  }
+  if (parsed.courseColors) {
+    Object.keys(parsed.courseColors).forEach((sanitizedCode) => {
+      const select = byId<HTMLSelectElement>(`color-input-${sanitizedCode}`);
+      if (select) select.value = parsed.courseColors?.[sanitizedCode] ?? select.value;
+    });
+  }
+  if (typeof parsed.drivingColorId === "string") {
+    const drivingColor = byId<HTMLSelectElement>("drivingColorId");
+    if (drivingColor) drivingColor.value = parsed.drivingColorId;
   }
 
   updateUIText();
@@ -190,25 +209,39 @@ function injectEmojiInputs(): void {
   const scheduleTable = byId<HTMLElement>("myForm:studScheduleTable");
   if (!scheduleTable) return;
 
-  const defaultEmojis = [
+  const preferredClassEmojis = [
     "📚",
-    "💻",
+    "🖥️",
+    "🌍",
     "🧪",
+    "📐",
     "📈",
     "🧠",
-    "💡",
-    "✍️",
+    "💻",
+    "📝",
+    "🧬",
+    "⚙️",
+    "🏛️",
+    "🔬",
     "🗣️",
-    "🌍",
-    "🕌",
-    "🔢",
+    "📊",
+    "🧮",
     "⚛️",
-    "📜",
-    "⚖️",
-    "🎨",
+    "📖",
+    "🛰️",
   ];
+  for (let i = preferredClassEmojis.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [preferredClassEmojis[i], preferredClassEmojis[j]] = [preferredClassEmojis[j], preferredClassEmojis[i]];
+  }
 
   let emojiIndex = 0;
+  const colorIds = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+  for (let i = colorIds.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [colorIds[i], colorIds[j]] = [colorIds[j], colorIds[i]];
+  }
+  let colorIndex = 0;
   const processedCourses = new Set<string>();
 
   scheduleTable.querySelectorAll<HTMLTableRowElement>("tbody > tr").forEach((row) => {
@@ -228,18 +261,47 @@ function injectEmojiInputs(): void {
     input.style.margin = "0 10px";
     input.style.border = "1px solid #ccc";
     input.style.borderRadius = "4px";
-    input.value = defaultEmojis[emojiIndex % defaultEmojis.length];
+    input.value = preferredClassEmojis[emojiIndex % preferredClassEmojis.length];
     emojiIndex += 1;
 
     const centerTag = courseCodeCell.querySelector<HTMLElement>("center");
-    if (centerTag) centerTag.appendChild(input);
-    else courseCodeCell.appendChild(input);
+    const colorSelect = document.createElement("select");
+    colorSelect.id = `color-input-${sanitizedCode}`;
+    colorSelect.style.margin = "0 6px";
+    colorSelect.style.border = "1px solid #ccc";
+    colorSelect.style.borderRadius = "4px";
+    colorSelect.style.height = "24px";
+    colorSelect.style.fontSize = "11px";
+    [
+      { value: "1", label: "Lavender" },
+      { value: "2", label: "Sage" },
+      { value: "3", label: "Grape" },
+      { value: "4", label: "Flamingo" },
+      { value: "5", label: "Banana" },
+      { value: "6", label: "Tangerine" },
+      { value: "7", label: "Peacock" },
+      { value: "8", label: "Graphite" },
+      { value: "9", label: "Blueberry" },
+      { value: "10", label: "Basil" },
+      { value: "11", label: "Tomato" },
+    ].forEach((optionDef) => {
+      const option = document.createElement("option");
+      option.value = optionDef.value;
+      option.textContent = optionDef.label;
+      colorSelect.appendChild(option);
+    });
+    colorSelect.value = colorIds[colorIndex % colorIds.length] ?? "1";
+    colorIndex += 1;
+
+    const container = centerTag ?? courseCodeCell;
+    container.appendChild(input);
+    container.appendChild(colorSelect);
   });
 }
 
 function addSaveListeners(): void {
   document
-    .querySelectorAll<HTMLElement>('.save-state, input[id^="emoji-input-"]')
+    .querySelectorAll<HTMLElement>('.save-state, input[id^="emoji-input-"], select[id^="color-input-"]')
     .forEach((element) => {
       element.addEventListener("change", saveState);
     });
@@ -351,6 +413,11 @@ function initializeScript(): void {
 
   // 5. Re-apply listeners and state
   injectEmojiInputs();
+  const drivingColorSelect = byId<HTMLSelectElement>("drivingColorId");
+  if (drivingColorSelect) {
+    const choices = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+    drivingColorSelect.value = choices[Math.floor(Math.random() * choices.length)] ?? "1";
+  }
   loadState();
   addSaveListeners();
   updateUIText();

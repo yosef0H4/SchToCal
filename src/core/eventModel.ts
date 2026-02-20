@@ -22,6 +22,7 @@ export interface RecurringSeries {
   location?: string;
   description?: string;
   transparency?: "transparent" | "opaque";
+  colorGroup?: string;
 }
 
 export const DAY_MAP: Record<number, string> = {
@@ -73,6 +74,7 @@ export function buildRecurringSeries(
           location: entry.room,
           description: `${course.courseName}\nSection: ${course.sectionNumber}\nInstructor: ${course.instructor}`,
           transparency: "opaque",
+          colorGroup: sanitizedCode,
         });
       });
     });
@@ -116,6 +118,7 @@ export function buildRecurringSeries(
           endMinutes: bounds.start,
           summary: `${options.drivingEmoji} ${strings.drivingTo}`,
           transparency: "transparent",
+          colorGroup: "driving",
         });
       }
 
@@ -127,6 +130,7 @@ export function buildRecurringSeries(
           endMinutes: bounds.end + options.drivingTimeFrom,
           summary: `${options.drivingEmoji} ${strings.drivingFrom}`,
           transparency: "transparent",
+          colorGroup: "driving",
         });
       }
     });
