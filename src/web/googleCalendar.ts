@@ -37,6 +37,7 @@ type GoogleIdentity = {
         client_id: string;
         scope: string;
         callback: (response: GoogleTokenResponse) => void;
+        error_callback?: (error: { type?: string; message?: string }) => void;
       }) => GoogleTokenClient;
     };
   };
@@ -81,15 +82,41 @@ export async function requestAccessToken(clientId: string): Promise<string> {
   if (!oauth2) throw new Error("Google Identity SDK is unavailable.");
 
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const settleResolve = (token: string): void => {
+      if (settled) return;
+      settled = true;
+      resolve(token);
+    };
+    const settleReject = (message: string): void => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(message));
+    };
+
+    const timeout = window.setTimeout(() => {
+      settleReject("Google sign-in was cancelled or timed out.");
+    }, 120000);
+
     const client = oauth2.initTokenClient({
       client_id: clientId,
       scope: CALENDAR_SCOPE,
       callback: (response: GoogleTokenResponse) => {
+        window.clearTimeout(timeout);
         if (response.error || !response.access_token) {
-          reject(new Error(response.error_description || response.error || "Failed to get access token."));
+          settleReject(response.error_description || response.error || "Failed to get access token.");
           return;
         }
-        resolve(response.access_token);
+        settleResolve(response.access_token);
+      },
+      error_callback: (error) => {
+        window.clearTimeout(timeout);
+        const type = error?.type ?? "unknown_error";
+        if (type === "popup_closed") {
+          settleReject("Google sign-in popup was closed.");
+          return;
+        }
+        settleReject(error?.message || `Google sign-in failed: ${type}`);
       },
     });
 
