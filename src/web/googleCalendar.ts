@@ -9,7 +9,7 @@ import {
 import { CourseSchedule } from "../core/types";
 
 const GSI_SRC = "https://accounts.google.com/gsi/client";
-const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
+const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.app.created";
 
 const TAG_APP_KEY = "schmakerApp";
 const TAG_APP_VALUE = "schmaker";
@@ -17,6 +17,7 @@ const TAG_SEMESTER_KEY = "schmakerSemester";
 const TAG_VERSION_KEY = "schmakerVersion";
 const TAG_VERSION_VALUE = "1";
 const GOOGLE_EVENT_COLOR_IDS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"] as const;
+const CALENDAR_ID_CACHE_KEY = "schmaker_google_calendar_ids";
 
 type GoogleColorId = (typeof GOOGLE_EVENT_COLOR_IDS)[number];
 
@@ -168,17 +169,46 @@ async function fetchAllCalendarItems(accessToken: string, path: string): Promise
   return items;
 }
 
+function loadCalendarIdCache(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(CALENDAR_ID_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCalendarIdCache(cache: Record<string, string>): void {
+  try {
+    localStorage.setItem(CALENDAR_ID_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // Ignore storage failures (private mode/quota).
+  }
+}
+
 export async function ensureSemesterCalendar(
   accessToken: string,
   semesterLabel: string,
 ): Promise<{ id: string; summary: string }> {
-  const calendars = await fetchAllCalendarItems(
-    accessToken,
-    `/users/me/calendarList?minAccessRole=owner&showHidden=false&maxResults=250`,
-  );
+  const cache = loadCalendarIdCache();
+  const cachedId = cache[semesterLabel];
+  if (cachedId) {
+    const existingResp = await fetchGoogle(accessToken, `/calendars/${encodeURIComponent(cachedId)}`);
+    if (existingResp.ok) {
+      const existing = await existingResp.json();
+      return { id: existing.id, summary: existing.summary };
+    }
 
-  const existing = calendars.find((c) => c.summary === semesterLabel);
-  if (existing?.id) return { id: existing.id, summary: existing.summary };
+    if (existingResp.status === 404 || existingResp.status === 403) {
+      delete cache[semesterLabel];
+      saveCalendarIdCache(cache);
+    } else {
+      const body = await existingResp.text();
+      throw new Error(`Failed to read calendar (${existingResp.status}): ${body}`);
+    }
+  }
 
   const createResp = await fetchGoogle(accessToken, `/calendars`, {
     method: "POST",
@@ -194,6 +224,8 @@ export async function ensureSemesterCalendar(
   }
 
   const created = await createResp.json();
+  cache[semesterLabel] = created.id;
+  saveCalendarIdCache(cache);
   return { id: created.id, summary: created.summary };
 }
 
