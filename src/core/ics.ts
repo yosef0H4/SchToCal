@@ -1,5 +1,5 @@
 import { uiStrings } from "./strings";
-import { CourseSchedule, IcsOptions } from "./types";
+import { CourseSchedule, IcsOptions, RamadanMode } from "./types";
 
 function toIcsDate(date: Date): string {
   return `${date.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
@@ -15,7 +15,7 @@ function convertTo24Hour(h: number, m: number, period: string): [number, number]
 export function getAdjustedTimesInMinutes(
   startStr: string,
   endStr: string,
-  ramadanMode: boolean,
+  ramadanMode: RamadanMode,
 ): { start: number; end: number } {
   const sMatches = startStr.match(/\d+/g);
   const eMatches = endStr.match(/\d+/g);
@@ -31,25 +31,36 @@ export function getAdjustedTimesInMinutes(
   let startTotal = sHour * 60 + sMin;
   let endTotal = eHour * 60 + eMin;
 
-  if (ramadanMode) {
-    const standardToSlot: Record<number, number> = {
-      8: 1,
-      9: 2,
-      10: 3,
-      11: 4,
-      13: 5,
-      14: 6,
-      15: 7,
-      16: 8,
+  if (ramadanMode !== "off") {
+    const engineeringStarts: Record<number, number> = {
+      8: 10 * 60,
+      9: 10 * 60 + 40,
+      10: 11 * 60 + 20,
+      11: 12 * 60 + 30,
+      13: 13 * 60 + 10,
+      14: 13 * 60 + 50,
+      15: 14 * 60 + 30,
+      16: 15 * 60 + 10,
     };
 
-    const slot = standardToSlot[sHour];
-    if (slot) {
-      const ramadanStartMins = slot <= 3 ? 10 * 60 + (slot - 1) * 40 : 750 + (slot - 4) * 40;
+    const firstYearStarts: Record<number, number> = {
+      13: 21 * 60 + 30,
+      14: 22 * 60 + 10,
+      15: 22 * 60 + 50,
+      16: 23 * 60 + 30,
+      17: 10,
+      18: 50,
+      19: 90,
+    };
+
+    const mappedStart =
+      ramadanMode === "engineering" ? engineeringStarts[sHour] : firstYearStarts[sHour];
+
+    if (mappedStart !== undefined) {
       const originalDuration = Math.max(0, endTotal - startTotal);
       const ramadanDuration = Math.round(originalDuration * 0.7);
-      startTotal = ramadanStartMins;
-      endTotal = ramadanStartMins + ramadanDuration;
+      startTotal = mappedStart;
+      endTotal = mappedStart + ramadanDuration;
     }
   }
 

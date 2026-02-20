@@ -6,7 +6,7 @@ import { EventContentArg, EventInput } from "@fullcalendar/core";
 import { generateIcs, downloadFile, getAdjustedTimesInMinutes } from "../core/ics";
 import { parseScheduleFromHtml } from "../core/parse";
 import { uiStrings } from "../core/strings";
-import { CourseSchedule, Lang } from "../core/types";
+import { CourseSchedule, Lang, RamadanMode } from "../core/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { theme } from "./themeConfig";
 import {
@@ -14,12 +14,12 @@ import {
   Calendar,
   Clock,
   Car,
-  Moon,
   Download,
   Languages,
   FileCheck,
   AlertCircle,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -75,7 +75,7 @@ const StyledInput = ({
   <input
     {...props}
     className={cn(
-      "w-full px-4 py-3 outline-none transition-all duration-300",
+      "w-full h-12 px-4 outline-none transition-all duration-300",
       theme.inputClass,
       theme.textClass,
       "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -83,6 +83,84 @@ const StyledInput = ({
     )}
   />
 );
+
+const StyledSelect = ({
+  label,
+  value,
+  onChange,
+  options,
+  direction = "rtl",
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  options: { value: string; label: string }[];
+  direction?: "rtl" | "ltr";
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative" ref={containerRef} dir={direction}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "w-full h-12 px-4 flex items-center justify-between transition-all duration-300",
+          theme.inputClass.replace("focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]", ""),
+          isOpen ? "shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" : "shadow-none",
+          theme.textClass
+        )}
+      >
+        <span className="truncate">{selectedOption?.label || label}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isOpen && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={cn(
+              "absolute z-50 w-full mt-1 bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden",
+              theme.textClass
+            )}
+          >
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full px-4 py-2 text-start transition-colors hover:bg-yellow-50",
+                  value === opt.value ? "bg-yellow-100 font-bold" : ""
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 // --- Main App ---
 
@@ -103,7 +181,7 @@ function getWeekStartSunday(date: Date): Date {
 function buildWeeklyPreviewEvents(
   courses: CourseSchedule[],
   courseEmojis: Record<string, string>,
-  ramadanMode: boolean,
+  ramadanMode: RamadanMode,
   drivingTimeTo: number,
   drivingTimeFrom: number,
   drivingEmoji: string,
@@ -238,7 +316,7 @@ function App() {
   const [driveFromH, setDriveFromH] = useState("");
   const [driveFromM, setDriveFromM] = useState("");
   const [drivingEmoji, setDrivingEmoji] = useState("🚗");
-  const [ramadanMode, setRamadanMode] = useState(false);
+  const [ramadanMode, setRamadanMode] = useState<RamadanMode>("off");
   const [error, setError] = useState("");
   const [courseEmojis, setCourseEmojis] = useState<Record<string, string>>({});
 
@@ -253,15 +331,15 @@ function App() {
     () =>
       parsed
         ? buildWeeklyPreviewEvents(
-            parsed.scheduleData,
-            courseEmojis,
-            ramadanMode,
-            drivingTimeTo,
-            drivingTimeFrom,
-            drivingEmoji || "🚗",
-            strings.drivingTo,
-            strings.drivingFrom,
-          )
+          parsed.scheduleData,
+          courseEmojis,
+          ramadanMode,
+          drivingTimeTo,
+          drivingTimeFrom,
+          drivingEmoji || "🚗",
+          strings.drivingTo,
+          strings.drivingFrom,
+        )
         : [],
     [
       parsed,
@@ -290,7 +368,7 @@ function App() {
         driveFromH?: string;
         driveFromM?: string;
         drivingEmoji?: string;
-        ramadanMode?: boolean;
+        ramadanMode?: boolean | RamadanMode;
         courseEmojis?: Record<string, string>;
       };
 
@@ -303,7 +381,11 @@ function App() {
       if (typeof prefs.driveFromH === "string") setDriveFromH(prefs.driveFromH);
       if (typeof prefs.driveFromM === "string") setDriveFromM(prefs.driveFromM);
       if (typeof prefs.drivingEmoji === "string") setDrivingEmoji(prefs.drivingEmoji);
-      if (typeof prefs.ramadanMode === "boolean") setRamadanMode(prefs.ramadanMode);
+      if (prefs.ramadanMode === "engineering" || prefs.ramadanMode === "firstYear" || prefs.ramadanMode === "off") {
+        setRamadanMode(prefs.ramadanMode);
+      } else if (typeof prefs.ramadanMode === "boolean") {
+        setRamadanMode(prefs.ramadanMode ? "engineering" : "off");
+      }
       if (prefs.courseEmojis && typeof prefs.courseEmojis === "object") {
         setCourseEmojis(prefs.courseEmojis);
       }
@@ -579,32 +661,31 @@ function App() {
                   </InputGroup>
                 </div>
 
-                <div className={cn("flex flex-wrap items-center gap-4 pt-4 border-t", theme.borderClass)}>
-                  <div className={cn("flex items-center gap-3 px-4 py-2 border", theme.borderClass, theme.cardInnerBg)}>
-                    <span className={cn("text-sm", theme.subTextClass)}>{strings.drivingEmoji}</span>
-                    <input
-                      type="text"
-                      value={drivingEmoji}
-                      onChange={(e) => setDrivingEmoji(e.target.value)}
-                      className="w-10 bg-transparent text-center text-xl outline-none"
-                    />
-                  </div>
-
-                  <label className="flex flex-1 items-center justify-between cursor-pointer px-4 py-3 border transition hover:bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <Moon className="h-4 w-4 text-amber-500" />
-                      <span className={cn("text-sm font-bold", theme.textClass)}>{strings.ramadanMode}</span>
-                    </div>
-                    <div className={cn("h-6 w-11 rounded-full transition-colors relative", ramadanMode ? "bg-emerald-400" : "bg-slate-300")}>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={ramadanMode}
-                        onChange={(e) => setRamadanMode(e.target.checked)}
+                <div className={cn("pt-4 border-t", theme.borderClass)}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InputGroup label={strings.ramadanSchedule} icon={Calendar}>
+                      <StyledSelect
+                        label={strings.ramadanSchedule}
+                        value={ramadanMode}
+                        onChange={(val) => setRamadanMode(val as RamadanMode)}
+                        options={[
+                          { value: "off", label: strings.ramadanOff },
+                          { value: "engineering", label: strings.ramadanEngineering },
+                          { value: "firstYear", label: strings.ramadanFirstYear },
+                        ]}
+                        direction={direction}
                       />
-                      <div className={cn("absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform", ramadanMode ? "translate-x-5" : "translate-x-0")} />
-                    </div>
-                  </label>
+                    </InputGroup>
+
+                    <InputGroup label={strings.drivingEmoji} icon={Car}>
+                      <StyledInput
+                        type="text"
+                        value={drivingEmoji}
+                        onChange={(e) => setDrivingEmoji(e.target.value)}
+                        className="text-center"
+                      />
+                    </InputGroup>
+                  </div>
                 </div>
               </div>
 

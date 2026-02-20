@@ -1,4 +1,5 @@
 export type Lang = "ar" | "en";
+export type RamadanMode = "off" | "engineering" | "firstYear";
 
 export interface UIStrings {
   semesterStart: string;
@@ -23,7 +24,10 @@ export interface UIStrings {
   guideClose: string;
   drivingTo: string;
   drivingFrom: string;
-  ramadanMode: string;
+  ramadanSchedule: string;
+  ramadanOff: string;
+  ramadanEngineering: string;
+  ramadanFirstYear: string;
   uploadTitle: string;
   uploadHint: string;
   uploadButton: string;
@@ -64,7 +68,7 @@ export interface IcsOptions {
   drivingTimeTo: number;
   drivingTimeFrom: number;
   drivingEmoji: string;
-  ramadanMode: boolean;
+  ramadanMode: RamadanMode;
   lang: Lang;
   courseEmojis: Record<string, string>;
 }

@@ -1,7 +1,7 @@
 import { generateIcs, downloadFile } from "../core/ics";
 import { parseScheduleFromDocument } from "../core/parse";
 import { uiStrings } from "../core/strings";
-import { Lang, Prefs } from "../core/types";
+import { Lang, Prefs, RamadanMode } from "../core/types";
 import { CONTROLS_HTML, USERSCRIPT_CSS } from "./assets/generated";
 
 const PREFS_KEY = "schedulePrefs";
@@ -63,7 +63,12 @@ function updateUIText(): void {
   byIdRequired<HTMLLabelElement>("labelDrivingTimeTo").textContent = strings.drivingTimeTo;
   byIdRequired<HTMLLabelElement>("labelDrivingTimeFrom").textContent = strings.drivingTimeFrom;
   byIdRequired<HTMLLabelElement>("labelDrivingEmoji").textContent = strings.drivingEmoji;
-  byIdRequired<HTMLLabelElement>("labelRamadanMode").textContent = strings.ramadanMode;
+  byIdRequired<HTMLLabelElement>("labelRamadanMode").textContent = strings.ramadanSchedule;
+  byIdRequired<HTMLOptionElement>("ramadanModeOptionOff").textContent = strings.ramadanOff;
+  byIdRequired<HTMLOptionElement>("ramadanModeOptionEngineering").textContent =
+    strings.ramadanEngineering;
+  byIdRequired<HTMLOptionElement>("ramadanModeOptionFirstYear").textContent =
+    strings.ramadanFirstYear;
 
   byIdRequired<HTMLInputElement>("drivingTimeToHours").placeholder = strings.hoursPlaceholder;
   byIdRequired<HTMLInputElement>("drivingTimeToMinutes").placeholder = strings.minutesPlaceholder;
@@ -263,7 +268,13 @@ function parseAndDownloadIcs(event: MouseEvent): void {
   const hFrom = parseInt(byIdRequired<HTMLInputElement>("drivingTimeFromHours").value, 10) || 0;
   const mFrom = parseInt(byIdRequired<HTMLInputElement>("drivingTimeFromMinutes").value, 10) || 0;
   const drivingEmoji = byIdRequired<HTMLInputElement>("drivingEmoji").value || "🚗";
-  const ramadanMode = byId<HTMLSelectElement>("ramadanMode")?.value === "on";
+  const ramadanRaw = byId<HTMLSelectElement>("ramadanMode")?.value;
+  const ramadanMode: RamadanMode =
+    ramadanRaw === "engineering" || ramadanRaw === "firstYear" || ramadanRaw === "off"
+      ? ramadanRaw
+      : ramadanRaw === "on"
+        ? "engineering"
+        : "off";
 
   const courseEmojis: Record<string, string> = {};
   document.querySelectorAll<HTMLInputElement>('input[id^="emoji-input-"]').forEach((input) => {
