@@ -144,9 +144,10 @@
         14: 22 * 60 + 10,
         15: 22 * 60 + 50,
         16: 23 * 60 + 30,
-        17: 10,
-        18: 50,
-        19: 90
+        // After midnight slots continue into the next day.
+        17: 24 * 60 + 10,
+        18: 24 * 60 + 50,
+        19: 25 * 60 + 30
       };
       const mappedStart = ramadanMode === "engineering" ? engineeringStarts[sHour] : firstYearStarts[sHour];
       if (mappedStart !== void 0) {
