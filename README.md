@@ -8,7 +8,7 @@ This project includes:
 
 ## Features
 - Parse saved schedule page HTML
-- Generate recurring weekly calendar events (`Asia/Riyadh`)
+- Generate recurring weekly calendar events
 - Optional driving events (to/from university)
 - Emoji per course
 - Arabic/English UI
