@@ -122,6 +122,10 @@ body::-webkit-scrollbar-corner {
   height: 8px !important;
 }
 
+.fc-scroller {
+  overflow-x: hidden !important;
+}
+
 .fc-scroller::-webkit-scrollbar-track {
   background: #FFFDF5 !important;
   border: 1px solid #000 !important;

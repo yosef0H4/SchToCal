@@ -309,8 +309,8 @@ function App() {
   const [parsed, setParsed] = useState<ParseState | null>(null);
 
   // Settings State
-  const [semesterStart, setSemesterStart] = useState("");
-  const [semesterEnd, setSemesterEnd] = useState("");
+  const [semesterStart, setSemesterStart] = useState("2026-01-18");
+  const [semesterEnd, setSemesterEnd] = useState("2026-08-23");
   const [driveToH, setDriveToH] = useState("");
   const [driveToM, setDriveToM] = useState("");
   const [driveFromH, setDriveFromH] = useState("");
@@ -737,7 +737,7 @@ function App() {
                       initialView="timeGridWeek"
                       headerToolbar={false}
                       allDaySlot={false}
-                      height={520}
+                      height={600}
                       expandRows
                       slotMinTime="07:00:00"
                       slotMaxTime="22:00:00"
