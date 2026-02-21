@@ -420,6 +420,7 @@ function App() {
   const [courseColors, setCourseColors] = useState<Record<string, string>>({});
   const [drivingColorId, setDrivingColorId] = useState("1");
   const [syncStatus, setSyncStatus] = useState<string>("");
+  const [calendarOpenUrl, setCalendarOpenUrl] = useState("");
   const [syncBusy, setSyncBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = uiStrings[lang];
@@ -658,7 +659,7 @@ function App() {
     setError("");
     setSyncBusy(true);
     setSyncStatus(strings.syncGoogleWorking);
-    const calendarTab = window.open("", "_blank", "noopener,noreferrer");
+    setCalendarOpenUrl("");
 
     try {
       const options: BuildSeriesOptions = {
@@ -691,19 +692,12 @@ function App() {
           .replace("{deleted}", String(result.deleted))
           .replace("{inserted}", String(result.inserted)),
       );
-      const calendarUrl = "https://calendar.google.com/calendar/u/0/r";
-      window.setTimeout(() => {
-        if (calendarTab && !calendarTab.closed) {
-          calendarTab.location.href = calendarUrl;
-        }
-      }, 900);
+      setCalendarOpenUrl("https://calendar.google.com/calendar/u/0/r");
     } catch (err) {
-      if (calendarTab && !calendarTab.closed) {
-        calendarTab.close();
-      }
       const message = err instanceof Error ? err.message : strings.syncGoogleFailed;
       setError(`${strings.syncGoogleFailed} ${message}`);
       setSyncStatus("");
+      setCalendarOpenUrl("");
     } finally {
       setSyncBusy(false);
     }
@@ -1004,6 +998,16 @@ function App() {
                     </div>
                   )}
                   {syncStatus && <p className={cn("text-xs font-semibold text-emerald-700")}>{syncStatus}</p>}
+                  {calendarOpenUrl && (
+                    <a
+                      href={calendarOpenUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className={cn("text-xs font-semibold underline", theme.textClass)}
+                    >
+                      {lang === "ar" ? "افتح Google Calendar في تبويب جديد" : "Open Google Calendar in a new tab"}
+                    </a>
+                  )}
                 </div>
               </div>
             </Card>
