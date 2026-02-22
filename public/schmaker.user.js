@@ -176,8 +176,13 @@
     return { datePart, timePart };
   }
   function formatDisplayLocation(room, roomInfo) {
-    const preferred = [roomInfo?.roomLabel, roomInfo?.buildingName].filter(Boolean).join(" ").trim();
-    return preferred || room;
+    if (roomInfo?.roomLabel && roomInfo?.buildingName) {
+      return `${roomInfo.roomLabel} ${roomInfo.buildingName}`;
+    }
+    if (roomInfo?.roomLabel && roomInfo?.buildingCode) {
+      return `${roomInfo.roomLabel} ${roomInfo.buildingCode}`;
+    }
+    return room;
   }
   function generateIcs(scheduleData, options) {
     const strings = uiStrings[options.lang];

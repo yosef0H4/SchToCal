@@ -36,8 +36,13 @@ export const DAY_MAP: Record<number, string> = {
 };
 
 function formatDisplayLocation(room: string, roomInfo?: RoomInfo): string {
-  const preferred = [roomInfo?.roomLabel, roomInfo?.buildingName].filter(Boolean).join(" ").trim();
-  return preferred || room;
+  if (roomInfo?.roomLabel && roomInfo?.buildingName) {
+    return `${roomInfo.roomLabel} ${roomInfo.buildingName}`;
+  }
+  if (roomInfo?.roomLabel && roomInfo?.buildingCode) {
+    return `${roomInfo.roomLabel} ${roomInfo.buildingCode}`;
+  }
+  return room;
 }
 
 function toUtcStamp(date: Date): string {
