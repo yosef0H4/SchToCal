@@ -11,7 +11,8 @@
     "dev:web": "vite",
     "dev": "npm run build:tm && npm run dev:web",
     "preview:web": "vite preview",
-    "preview:build": "npm run build && npm run preview:web"
+    "preview:build": "npm run build && npm run preview:web",
+    "parse:html": "node scripts/parse-html-cli.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
@@ -19,6 +20,7 @@
     "@fullcalendar/timegrid": "^6.1.20",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.2",
+    "jsdom": "^28.1.0",
     "lucide-react": "^0.575.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

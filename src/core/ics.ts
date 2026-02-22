@@ -1,5 +1,5 @@
 import { uiStrings } from "./strings";
-import { CourseSchedule, IcsOptions, RamadanMode } from "./types";
+import { CourseSchedule, IcsOptions, RamadanMode, RoomInfo } from "./types";
 
 function toIcsDate(date: Date): string {
   return `${date.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
@@ -95,6 +95,11 @@ function toIcsLocalDateTimeParts(baseDate: Date, totalMinutes: number): { datePa
   return { datePart, timePart };
 }
 
+function formatDisplayLocation(room: string, roomInfo?: RoomInfo): string {
+  const preferred = [roomInfo?.roomLabel, roomInfo?.buildingName].filter(Boolean).join(" ").trim();
+  return preferred || room;
+}
+
 export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions): string {
   const strings = uiStrings[options.lang];
 
@@ -146,8 +151,8 @@ export function generateIcs(scheduleData: CourseSchedule[], options: IcsOptions)
             `DTEND;TZID=Asia/Riyadh:${endParts.datePart}T${endParts.timePart}`,
             `RRULE:FREQ=WEEKLY;UNTIL=${toIcsDate(options.semesterEnd)};BYDAY=${dayMap[dayIndex]}`,
             `SUMMARY:${`${course.courseCode} ${emoji}${activityTypeEmoji}`.trim()}`,
-            `LOCATION:${entry.room}`,
-            `DESCRIPTION:${course.courseName}\\nSection: ${course.sectionNumber}\\nInstructor: ${course.instructor}`,
+            `LOCATION:${formatDisplayLocation(entry.room, entry.roomInfo)}`,
+            `DESCRIPTION:${course.courseName}\\n🔢 ${course.sectionNumber}\\n👨‍🏫 ${course.instructor}\\n📍 ${entry.room}`,
             "END:VEVENT",
           ].join("\n"),
         );

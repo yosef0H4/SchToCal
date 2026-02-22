@@ -52,6 +52,19 @@ export interface ScheduleEntry {
   startTime: string;
   endTime: string;
   room: string;
+  roomInfo?: RoomInfo;
+}
+
+export interface RoomInfo {
+  raw: string;
+  format: "dash" | "space" | "unknown";
+  buildingCode?: string;
+  buildingName?: string;
+  blockCode?: string;
+  floor?: string;
+  wing?: string;
+  roomNumber?: string;
+  roomLabel?: string;
 }
 
 export interface CourseSchedule {

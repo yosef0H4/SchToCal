@@ -1,4 +1,58 @@
-import { CourseSchedule, ParseResult, ScheduleEntry } from "./types";
+import { CourseSchedule, ParseResult, RoomInfo, ScheduleEntry } from "./types";
+
+const BUILDING_NAME_BY_CODE: Record<string, string> = {
+  "5": "البرنامج الموحد (السنة التحضيرية)",
+  "33": "الهندسة",
+  "34": "العلوم الطبية التطبيقية",
+  "35": "إدارة الاعمال",
+  "36": "العلوم والدراسات الانسانية",
+  "54": "هندسة وعلوم الحاسب",
+  "55": "الطب",
+  "62": "الصيدلة",
+  "63": "طب الاسنان",
+  "49": "التربية",
+};
+
+function parseRoomInfo(rawRoom: string): RoomInfo {
+  const raw = rawRoom.trim();
+
+  const dashMatch = raw.match(/^(\d+)\s*-\s*(\d+)\s+([A-Za-z])\s+(\d+)$/);
+  if (dashMatch) {
+    const [, buildingCode, floor, wingRaw, roomNumber] = dashMatch;
+    const wing = wingRaw.toUpperCase();
+    return {
+      raw,
+      format: "dash",
+      buildingCode,
+      buildingName: BUILDING_NAME_BY_CODE[buildingCode],
+      floor,
+      wing,
+      roomNumber,
+      roomLabel: `${wing}${roomNumber}`,
+    };
+  }
+
+  const spaceMatch = raw.match(/^(\d+)\s+(\d+)\s+(\d+)\s+([A-Za-z])\s+([A-Za-z]?\d+)$/);
+  if (spaceMatch) {
+    const [, buildingCode, blockCode, floor, wingRaw, roomTokenRaw] = spaceMatch;
+    const wing = wingRaw.toUpperCase();
+    const roomToken = roomTokenRaw.toUpperCase();
+    const roomNumber = roomToken.match(/(\d+)$/)?.[1];
+    return {
+      raw,
+      format: "space",
+      buildingCode,
+      buildingName: BUILDING_NAME_BY_CODE[buildingCode],
+      blockCode,
+      floor,
+      wing,
+      roomNumber,
+      roomLabel: roomToken.startsWith(wing) ? roomToken : `${wing}${roomToken}`,
+    };
+  }
+
+  return { raw, format: "unknown" };
+}
 
 export function parseScheduleFromDocument(doc: Document): ParseResult | null {
   const scheduleTable = doc.getElementById("myForm:studScheduleTable");
@@ -29,7 +83,7 @@ export function parseScheduleFromDocument(doc: Document): ParseResult | null {
         const roomPart = (entry.split("@r")[1] ?? "").trim();
         const [startTime = "", endTime = ""] = timePart.split(" - ");
         const days = dayPart.split(" ").filter((d) => d.trim() !== "");
-        return { days, startTime, endTime, room: roomPart };
+        return { days, startTime, endTime, room: roomPart, roomInfo: parseRoomInfo(roomPart) };
       })
       .filter((entry) => entry.days.length > 0);
 

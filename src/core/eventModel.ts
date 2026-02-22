@@ -1,5 +1,5 @@
 import { getAdjustedTimesInMinutes } from "./ics";
-import { CourseSchedule, Lang, RamadanMode } from "./types";
+import { CourseSchedule, Lang, RamadanMode, RoomInfo } from "./types";
 import { uiStrings } from "./strings";
 
 export interface BuildSeriesOptions {
@@ -34,6 +34,11 @@ export const DAY_MAP: Record<number, string> = {
   6: "FR",
   7: "SA",
 };
+
+function formatDisplayLocation(room: string, roomInfo?: RoomInfo): string {
+  const preferred = [roomInfo?.roomLabel, roomInfo?.buildingName].filter(Boolean).join(" ").trim();
+  return preferred || room;
+}
 
 function toUtcStamp(date: Date): string {
   return `${date.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
@@ -71,8 +76,10 @@ export function buildRecurringSeries(
           startMinutes: start,
           endMinutes: end,
           summary: `${`${course.courseCode} ${emoji}${activityTypeEmoji}`.trim()}`,
-          location: entry.room,
-          description: `${course.courseName}\nSection: ${course.sectionNumber}\nInstructor: ${course.instructor}`,
+          location: formatDisplayLocation(entry.room, entry.roomInfo),
+          description:
+            `${course.courseName}\n🔢 ${course.sectionNumber}\n👨‍🏫 ${course.instructor}` +
+            `\n📍 ${entry.room}`,
           transparency: "opaque",
           colorGroup: sanitizedCode,
         });

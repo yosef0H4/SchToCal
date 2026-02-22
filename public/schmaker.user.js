@@ -175,6 +175,10 @@
     const timePart = `${hour.toString().padStart(2, "0")}${minute.toString().padStart(2, "0")}00`;
     return { datePart, timePart };
   }
+  function formatDisplayLocation(room, roomInfo) {
+    const preferred = [roomInfo?.roomLabel, roomInfo?.buildingName].filter(Boolean).join(" ").trim();
+    return preferred || room;
+  }
   function generateIcs(scheduleData, options) {
     const strings = uiStrings[options.lang];
     const dayMap = {
@@ -216,8 +220,8 @@
               `DTEND;TZID=Asia/Riyadh:${endParts.datePart}T${endParts.timePart}`,
               `RRULE:FREQ=WEEKLY;UNTIL=${toIcsDate(options.semesterEnd)};BYDAY=${dayMap[dayIndex]}`,
               `SUMMARY:${`${course.courseCode} ${emoji}${activityTypeEmoji}`.trim()}`,
-              `LOCATION:${entry.room}`,
-              `DESCRIPTION:${course.courseName}\\nSection: ${course.sectionNumber}\\nInstructor: ${course.instructor}`,
+              `LOCATION:${formatDisplayLocation(entry.room, entry.roomInfo)}`,
+              `DESCRIPTION:${course.courseName}\\n\u{1F522} ${course.sectionNumber}\\n\u{1F468}\u200D\u{1F3EB} ${course.instructor}\\n\u{1F4CD} ${entry.room}`,
               "END:VEVENT"
             ].join("\n")
           );
@@ -309,6 +313,55 @@
   }
 
   // src/core/parse.ts
+  var BUILDING_NAME_BY_CODE = {
+    "5": "\u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062C \u0627\u0644\u0645\u0648\u062D\u062F (\u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u062A\u062D\u0636\u064A\u0631\u064A\u0629)",
+    "33": "\u0627\u0644\u0647\u0646\u062F\u0633\u0629",
+    "34": "\u0627\u0644\u0639\u0644\u0648\u0645 \u0627\u0644\u0637\u0628\u064A\u0629 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u064A\u0629",
+    "35": "\u0625\u062F\u0627\u0631\u0629 \u0627\u0644\u0627\u0639\u0645\u0627\u0644",
+    "36": "\u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062F\u0631\u0627\u0633\u0627\u062A \u0627\u0644\u0627\u0646\u0633\u0627\u0646\u064A\u0629",
+    "54": "\u0647\u0646\u062F\u0633\u0629 \u0648\u0639\u0644\u0648\u0645 \u0627\u0644\u062D\u0627\u0633\u0628",
+    "55": "\u0627\u0644\u0637\u0628",
+    "62": "\u0627\u0644\u0635\u064A\u062F\u0644\u0629",
+    "63": "\u0637\u0628 \u0627\u0644\u0627\u0633\u0646\u0627\u0646",
+    "49": "\u0627\u0644\u062A\u0631\u0628\u064A\u0629"
+  };
+  function parseRoomInfo(rawRoom) {
+    const raw = rawRoom.trim();
+    const dashMatch = raw.match(/^(\d+)\s*-\s*(\d+)\s+([A-Za-z])\s+(\d+)$/);
+    if (dashMatch) {
+      const [, buildingCode, floor, wingRaw, roomNumber] = dashMatch;
+      const wing = wingRaw.toUpperCase();
+      return {
+        raw,
+        format: "dash",
+        buildingCode,
+        buildingName: BUILDING_NAME_BY_CODE[buildingCode],
+        floor,
+        wing,
+        roomNumber,
+        roomLabel: `${wing}${roomNumber}`
+      };
+    }
+    const spaceMatch = raw.match(/^(\d+)\s+(\d+)\s+(\d+)\s+([A-Za-z])\s+([A-Za-z]?\d+)$/);
+    if (spaceMatch) {
+      const [, buildingCode, blockCode, floor, wingRaw, roomTokenRaw] = spaceMatch;
+      const wing = wingRaw.toUpperCase();
+      const roomToken = roomTokenRaw.toUpperCase();
+      const roomNumber = roomToken.match(/(\d+)$/)?.[1];
+      return {
+        raw,
+        format: "space",
+        buildingCode,
+        buildingName: BUILDING_NAME_BY_CODE[buildingCode],
+        blockCode,
+        floor,
+        wing,
+        roomNumber,
+        roomLabel: roomToken.startsWith(wing) ? roomToken : `${wing}${roomToken}`
+      };
+    }
+    return { raw, format: "unknown" };
+  }
   function parseScheduleFromDocument(doc) {
     const scheduleTable = doc.getElementById("myForm:studScheduleTable");
     if (!scheduleTable) return null;
@@ -329,7 +382,7 @@
         const roomPart = (entry.split("@r")[1] ?? "").trim();
         const [startTime = "", endTime = ""] = timePart.split(" - ");
         const days = dayPart.split(" ").filter((d) => d.trim() !== "");
-        return { days, startTime, endTime, room: roomPart };
+        return { days, startTime, endTime, room: roomPart, roomInfo: parseRoomInfo(roomPart) };
       }).filter((entry) => entry.days.length > 0);
       scheduleData.push({
         courseCode,
