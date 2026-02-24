@@ -58,11 +58,10 @@ export function EhsanButton() {
                 </button>
 
                 {/* Popup Message - Dark Brutalist Style */}
-                <div className="absolute top-full mt-3 w-full opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-150 z-[60] pointer-events-none">
+                <div className="absolute top-full mt-2 w-full opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-150 z-[60] pointer-events-none">
                     <div className="bg-zinc-900 border-2 border-black shadow-[4px_4px_0_0_#000] p-4 relative mx-auto w-full max-w-sm">
-                        {/* Up Arrow */}
-                        <div className="absolute -top-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-l-transparent border-r-transparent border-b-black"></div>
-                        <div className="absolute -top-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-r-[7px] border-b-[7px] border-l-transparent border-r-transparent border-b-zinc-900 z-10"></div>
+                        {/* Centered notch connector */}
+                        <div className="absolute -top-[10px] left-1/2 -translate-x-1/2 w-5 h-5 bg-zinc-900 border-l-2 border-t-2 border-black rotate-45"></div>
 
                         {/* Content */}
                         <div className="flex items-start gap-3 relative z-10 text-right">
