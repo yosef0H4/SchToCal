@@ -1,0 +1,35 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cap Base (Cylinder part) -->
+  <path d="M 65 100 L 65 125 Q 100 145 135 125 L 135 100 Z" fill="#FF6B6B" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+  
+  <!-- Cap Top Diamond (Rhombus) -->
+  <polygon points="100,50 180,84 100,118 20,84" fill="#FF6B6B" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+  
+  <!-- Tassel Line on Cap Top -->
+  <path d="M 100 84 L 44 94" stroke="#000" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Tassel Drop Line -->
+  <path d="M 44 94 L 44 120" stroke="#000" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Tassel Bead Connector -->
+  <circle cx="44" cy="126" r="6" fill="#FFE66D" stroke="#000" stroke-width="6" />
+  
+  <!-- Tassel Bell -->
+  <path d="M 38 132 L 30 156 Q 44 160 58 156 L 50 132 Z" fill="#FFE66D" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+  
+  <!-- Calendar Body -->
+  <rect x="115" y="112" width="70" height="60" rx="6" fill="#FFE66D" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+  
+  <!-- Calendar Horizontal Split -->
+  <path d="M 115 132 L 185 132" stroke="#000" stroke-width="6" />
+  
+  <!-- Calendar Binder Rings -->
+  <line x1="130" y1="102" x2="130" y2="120" stroke="#000" stroke-width="5" stroke-linecap="round" />
+  <line x1="170" y1="102" x2="170" y2="120" stroke="#000" stroke-width="5" stroke-linecap="round" />
+  
+  <!-- Calendar Text: Month -->
+  <text x="150" y="127" font-family="Arial, sans-serif" font-weight="900" font-size="11" fill="#000" text-anchor="middle">JUNE</text>
+  
+  <!-- Calendar Text: Date -->
+  <text x="150" y="164" font-family="Arial, sans-serif" font-weight="900" font-size="34" fill="#000" text-anchor="middle">15</text>
+</svg>
