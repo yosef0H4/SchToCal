@@ -43,7 +43,7 @@ export const CONTROLS_HTML = `<div class="sm-field sm-col">
   <label id="labelRamadanMode" for="ramadanMode">Ramadan Schedule</label>
   <select id="ramadanMode" class="save-state sm-input">
     <option id="ramadanModeOptionOff" value="off">No Ramadan Schedule</option>
-    <option id="ramadanModeOptionEngineering" value="engineering">Engineering</option>
+    <option id="ramadanModeOptionEngineering" value="engineering">All Colleges (Ramadan 1447)</option>
     <option id="ramadanModeOptionFirstYear" value="firstYear">1st Year</option>
   </select>
 </div>`;

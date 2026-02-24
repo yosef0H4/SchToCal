@@ -1009,7 +1009,7 @@ function App() {
                       {lang === "ar" ? "افتح Google Calendar في تبويب جديد" : "Open Google Calendar in a new tab"}
                     </a>
                   )}
-                  <EhsanButton />
+                  <EhsanButton lang={lang} />
                 </div>
               </div>
             </Card>

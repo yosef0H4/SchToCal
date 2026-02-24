@@ -113,14 +113,122 @@ function parseScheduleFromHtml(html) {
   return parseScheduleFromDocument(dom.window.document);
 }
 
+function convertTo24Hour(h, m, period) {
+  let hour = h;
+  if (period.includes("م") && h !== 12) hour += 12;
+  if (period.includes("ص") && h === 12) hour = 0;
+  return [hour, m];
+}
+
+function durationMinutes(startTotal, endTotal) {
+  return endTotal >= startTotal ? endTotal - startTotal : endTotal + 1440 - startTotal;
+}
+
+const ENGINEERING_RAMADAN_STARTS = {
+  8: 10 * 60,
+  9: 10 * 60 + 40,
+  10: 11 * 60 + 20,
+  11: 12 * 60 + 30,
+  13: 13 * 60 + 10,
+  14: 13 * 60 + 50,
+  15: 14 * 60 + 30,
+  16: 15 * 60 + 10,
+  17: 21 * 60 + 30,
+  18: 22 * 60 + 10,
+  19: 22 * 60 + 50,
+  20: 23 * 60 + 30,
+  21: 24 * 60 + 10,
+  22: 24 * 60 + 50,
+};
+
+const ENGINEERING_RAMADAN_SLOTS = [
+  { start: 10 * 60, end: 10 * 60 + 35 },
+  { start: 10 * 60 + 40, end: 10 * 60 + 75 },
+  { start: 11 * 60 + 20, end: 11 * 60 + 55 },
+  { start: 12 * 60 + 30, end: 13 * 60 + 5 },
+  { start: 13 * 60 + 10, end: 13 * 60 + 45 },
+  { start: 13 * 60 + 50, end: 14 * 60 + 25 },
+  { start: 14 * 60 + 30, end: 15 * 60 + 5 },
+  { start: 15 * 60 + 10, end: 15 * 60 + 45 },
+  { start: 21 * 60 + 30, end: 22 * 60 + 5 },
+  { start: 22 * 60 + 10, end: 22 * 60 + 45 },
+  { start: 22 * 60 + 50, end: 23 * 60 + 25 },
+  { start: 23 * 60 + 30, end: 24 * 60 + 5 },
+  { start: 24 * 60 + 10, end: 24 * 60 + 45 },
+  { start: 24 * 60 + 50, end: 25 * 60 + 25 },
+];
+
+function projectedEngineeringEnd(mappedStart, originalDuration) {
+  const ORIGINAL_SLOT_MINUTES = 50;
+  const slotCount =
+    originalDuration % ORIGINAL_SLOT_MINUTES === 0
+      ? Math.max(1, originalDuration / ORIGINAL_SLOT_MINUTES)
+      : Math.max(1, Math.ceil(originalDuration / ORIGINAL_SLOT_MINUTES));
+  const startIdx = ENGINEERING_RAMADAN_SLOTS.findIndex((slot) => slot.start === mappedStart);
+  if (startIdx === -1) {
+    const teaching = slotCount * 35;
+    const breaks = (slotCount - 1) * 5;
+    return mappedStart + teaching + breaks;
+  }
+  const endIdx = Math.min(ENGINEERING_RAMADAN_SLOTS.length - 1, startIdx + slotCount - 1);
+  return ENGINEERING_RAMADAN_SLOTS[endIdx].end;
+}
+
+function formatMinutes(totalMinutes) {
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(wrapped / 60);
+  const minutes = wrapped % 60;
+  const dayShift = Math.floor(totalMinutes / 1440);
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(minutes).padStart(2, "0");
+  return dayShift > 0 ? `${hh}:${mm} (+${dayShift}d)` : `${hh}:${mm}`;
+}
+
+function getAdjustedTimesInMinutes(startStr, endStr, ramadanMode) {
+  const sMatches = startStr.match(/\d+/g);
+  const eMatches = endStr.match(/\d+/g);
+  if (!sMatches || !eMatches || sMatches.length < 2 || eMatches.length < 2) {
+    return { start: 0, end: 0, applied: false };
+  }
+
+  const [sH, sM] = sMatches.map(Number);
+  const [eH, eM] = eMatches.map(Number);
+  const [sHour, sMin] = convertTo24Hour(sH, sM, startStr);
+  const [eHour, eMin] = convertTo24Hour(eH, eM, endStr);
+
+  let startTotal = sHour * 60 + sMin;
+  let endTotal = eHour * 60 + eMin;
+  let applied = false;
+
+  if (ramadanMode !== "off") {
+    const mappedStart = ENGINEERING_RAMADAN_STARTS[sHour];
+    if (mappedStart !== undefined) {
+      const originalDuration = durationMinutes(startTotal, endTotal);
+      startTotal = mappedStart;
+      endTotal = projectedEngineeringEnd(mappedStart, originalDuration);
+      applied = true;
+    }
+  }
+
+  if (ramadanMode === "off" && endTotal <= startTotal) {
+    endTotal += 1440;
+  }
+
+  return { start: startTotal, end: endTotal, applied };
+}
+
 function printUsage() {
-  console.log("Usage: node scripts/parse-html-cli.mjs <file.html> [--json]");
+  console.log("Usage: node scripts/parse-html-cli.mjs <file.html> [--json] [--ramadan=engineering|off]");
   console.log("\nOptions:");
   console.log("  --json    Print JSON for all detected subjects/classes.");
+  console.log("  --ramadan Apply Ramadan time adjustment mode. Supported: engineering, off.");
 }
 
 const args = process.argv.slice(2);
 const jsonMode = args.includes("--json");
+const ramadanArg = args.find((arg) => arg.startsWith("--ramadan="));
+const ramadanModeRaw = ramadanArg ? ramadanArg.split("=")[1] : "off";
+const ramadanMode = ramadanModeRaw === "engineering" ? "engineering" : "off";
 const positional = args.filter((arg) => !arg.startsWith("--"));
 
 if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
@@ -156,7 +264,16 @@ if (jsonMode) {
     sectionNumber: course.sectionNumber,
     instructor: course.instructor,
     classCount: course.schedule.length,
-    schedule: course.schedule,
+    schedule: course.schedule.map((entry) => {
+      const adjusted = getAdjustedTimesInMinutes(entry.startTime, entry.endTime, ramadanMode);
+      return {
+        ...entry,
+        ramadanMode,
+        adjustedStart: formatMinutes(adjusted.start),
+        adjustedEnd: formatMinutes(adjusted.end),
+        ramadanApplied: adjusted.applied,
+      };
+    }),
   }));
   console.log(JSON.stringify({ studentName: parsed.studentName, subjects }, null, 2));
   process.exit(0);
@@ -164,8 +281,17 @@ if (jsonMode) {
 
 console.log(`Student: ${parsed.studentName}`);
 console.log(`Courses found: ${parsed.scheduleData.length}`);
+console.log(`Ramadan mode: ${ramadanMode}`);
 for (const [index, course] of parsed.scheduleData.entries()) {
   console.log(
     `${index + 1}. ${course.courseCode} | ${course.courseName} | section ${course.sectionNumber} | classes: ${course.schedule.length}`
   );
+  course.schedule.forEach((entry, entryIndex) => {
+    const adjusted = getAdjustedTimesInMinutes(entry.startTime, entry.endTime, ramadanMode);
+    if (ramadanMode === "engineering") {
+      console.log(
+        `   - class ${entryIndex + 1}: ${entry.startTime} -> ${entry.endTime} | adjusted: ${formatMinutes(adjusted.start)} -> ${formatMinutes(adjusted.end)}${adjusted.applied ? "" : " (no mapping)"}`
+      );
+    }
+  });
 }

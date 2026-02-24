@@ -16,6 +16,63 @@ function durationMinutes(startTotal: number, endTotal: number): number {
   return endTotal >= startTotal ? endTotal - startTotal : endTotal + 1440 - startTotal;
 }
 
+interface RamadanSlot {
+  start: number;
+  end: number;
+}
+
+const ENGINEERING_RAMADAN_STARTS: Record<number, number> = {
+  8: 10 * 60,
+  9: 10 * 60 + 40,
+  10: 11 * 60 + 20,
+  11: 12 * 60 + 30,
+  13: 13 * 60 + 10,
+  14: 13 * 60 + 50,
+  15: 14 * 60 + 30,
+  16: 15 * 60 + 10,
+  17: 21 * 60 + 30,
+  18: 22 * 60 + 10,
+  19: 22 * 60 + 50,
+  20: 23 * 60 + 30,
+  21: 24 * 60 + 10,
+  22: 24 * 60 + 50,
+};
+
+const ENGINEERING_RAMADAN_SLOTS: RamadanSlot[] = [
+  { start: 10 * 60, end: 10 * 60 + 35 },
+  { start: 10 * 60 + 40, end: 10 * 60 + 75 },
+  { start: 11 * 60 + 20, end: 11 * 60 + 55 },
+  // Dhuhr prayer break: 11:55 -> 12:20, then regular break before next slot.
+  { start: 12 * 60 + 30, end: 13 * 60 + 5 },
+  { start: 13 * 60 + 10, end: 13 * 60 + 45 },
+  { start: 13 * 60 + 50, end: 14 * 60 + 25 },
+  { start: 14 * 60 + 30, end: 15 * 60 + 5 },
+  { start: 15 * 60 + 10, end: 15 * 60 + 45 },
+  { start: 21 * 60 + 30, end: 22 * 60 + 5 },
+  { start: 22 * 60 + 10, end: 22 * 60 + 45 },
+  { start: 22 * 60 + 50, end: 23 * 60 + 25 },
+  { start: 23 * 60 + 30, end: 24 * 60 + 5 },
+  { start: 24 * 60 + 10, end: 24 * 60 + 45 },
+  { start: 24 * 60 + 50, end: 25 * 60 + 25 },
+];
+
+function projectedEngineeringEnd(mappedStart: number, originalDuration: number): number {
+  const ORIGINAL_SLOT_MINUTES = 50;
+  const slotCount =
+    originalDuration % ORIGINAL_SLOT_MINUTES === 0
+      ? Math.max(1, originalDuration / ORIGINAL_SLOT_MINUTES)
+      : Math.max(1, Math.ceil(originalDuration / ORIGINAL_SLOT_MINUTES));
+  const startIdx = ENGINEERING_RAMADAN_SLOTS.findIndex((slot) => slot.start === mappedStart);
+  if (startIdx === -1) {
+    const teaching = slotCount * 35;
+    const breaks = (slotCount - 1) * 5;
+    return mappedStart + teaching + breaks;
+  }
+
+  const endIdx = Math.min(ENGINEERING_RAMADAN_SLOTS.length - 1, startIdx + slotCount - 1);
+  return ENGINEERING_RAMADAN_SLOTS[endIdx].end;
+}
+
 export function getAdjustedTimesInMinutes(
   startStr: string,
   endStr: string,
@@ -36,17 +93,6 @@ export function getAdjustedTimesInMinutes(
   let endTotal = eHour * 60 + eMin;
 
   if (ramadanMode !== "off") {
-    const engineeringStarts: Record<number, number> = {
-      8: 10 * 60,
-      9: 10 * 60 + 40,
-      10: 11 * 60 + 20,
-      11: 12 * 60 + 30,
-      13: 13 * 60 + 10,
-      14: 13 * 60 + 50,
-      15: 14 * 60 + 30,
-      16: 15 * 60 + 10,
-    };
-
     const firstYearStarts: Record<number, number> = {
       13: 21 * 60 + 30,
       14: 22 * 60 + 10,
@@ -59,13 +105,15 @@ export function getAdjustedTimesInMinutes(
     };
 
     const mappedStart =
-      ramadanMode === "engineering" ? engineeringStarts[sHour] : firstYearStarts[sHour];
+      ramadanMode === "engineering" ? ENGINEERING_RAMADAN_STARTS[sHour] : firstYearStarts[sHour];
 
     if (mappedStart !== undefined) {
       const originalDuration = durationMinutes(startTotal, endTotal);
-      const ramadanDuration = Math.round(originalDuration * 0.7);
       startTotal = mappedStart;
-      endTotal = mappedStart + ramadanDuration;
+      endTotal =
+        ramadanMode === "engineering"
+          ? projectedEngineeringEnd(mappedStart, originalDuration)
+          : mappedStart + Math.round(originalDuration * 0.7);
     }
   }
 

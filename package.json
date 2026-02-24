@@ -12,7 +12,8 @@
     "dev": "npm run build:tm && npm run dev:web",
     "preview:web": "vite preview",
     "preview:build": "npm run build && npm run preview:web",
-    "parse:html": "node scripts/parse-html-cli.mjs"
+    "parse:html": "node scripts/parse-html-cli.mjs",
+    "test:ramadan": "node scripts/test-ramadan-logic.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
