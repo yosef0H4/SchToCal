@@ -719,7 +719,7 @@ function App() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#FFE66D]/20 rounded-full blur-3xl" />
       </div>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-20" dir={direction}>
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pt-12 pb-40 md:pt-20 md:pb-56" dir={direction}>
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
