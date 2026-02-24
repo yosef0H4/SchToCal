@@ -60,7 +60,7 @@ export function EhsanButton({ lang }: EhsanButtonProps) {
                     <div className="relative z-10 flex items-center justify-center h-full gap-3 pointer-events-none">
                         <Moon className="w-5 h-5 text-white/90 fill-white/10 group-hover/btn:fill-white/80 transition-colors duration-300" />
                         <span className="font-bold text-lg text-white drop-shadow-md">
-                            {isArabic ? "هل تصدقت؟" : "Have You Donated?"}
+                            {isArabic ? "هل تصدقت؟" : "Have You Given Charity?"}
                         </span>
                     </div>
                 </button>
@@ -77,7 +77,7 @@ export function EhsanButton({ lang }: EhsanButtonProps) {
                             <p className="text-sm leading-relaxed text-zinc-200 font-bold">
                                 {isArabic
                                     ? "اجعل لمنصتنا أثراً في ميزان حسناتك بالصدقة. انشر الموقع لمن يحتاجه لترتيب جدوله، وستنال أجر كل من يتصدق بفضلك."
-                                    : "Support this platform with a donation. Share it with anyone who needs help organizing their schedule, and gain reward for every person who donates through your referral."}
+                                    : "Give charity and make this platform a source of lasting good for you. Share it with anyone who needs help organizing their schedule, and you will be rewarded for everyone who gives through your support."}
                             </p>
                         </div>
                     </div>
