@@ -11,6 +11,7 @@ import { uiStrings } from "../core/strings";
 import { CourseSchedule, Lang, RamadanMode } from "../core/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { theme } from "./themeConfig";
+import { EhsanButton } from "./EhsanButton";
 import {
   UploadCloud,
   Calendar,
@@ -215,7 +216,7 @@ function colorHexById(colorId: string): string {
 }
 
 function isValidColorId(colorId: string): boolean {
-  return GOOGLE_COLOR_IDS.includes(colorId);
+  return GOOGLE_COLOR_IDS.includes(colorId as typeof GOOGLE_COLOR_IDS[number]);
 }
 
 function shuffledGoogleColorIds(): string[] {
@@ -1008,6 +1009,7 @@ function App() {
                       {lang === "ar" ? "افتح Google Calendar في تبويب جديد" : "Open Google Calendar in a new tab"}
                     </a>
                   )}
+                  <EhsanButton />
                 </div>
               </div>
             </Card>
