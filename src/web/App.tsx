@@ -25,6 +25,9 @@ import {
   AlertCircle,
   Eye,
   ChevronDown,
+  CircleHelp,
+  ExternalLink,
+  X,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -175,6 +178,8 @@ type ParseState = {
 };
 
 const WEB_PREFS_KEY = "scheduleWebPrefs";
+const HELP_VIDEO_SEEN_KEY = "scheduleHelpVideoSeen";
+const HELP_VIDEO_VIEW_URL = "https://drive.google.com/file/d/1Gh8RvTSxKheUIvDIQtP67u5FjCfYQVuK/view?usp=sharing";
 const GOOGLE_COLOR_OPTIONS = [
   { id: "1", labelAr: "خزامي", labelEn: "Lavender", hex: "#7986cb" },
   { id: "2", labelAr: "مريمية", labelEn: "Sage", hex: "#33b679" },
@@ -210,6 +215,12 @@ const PREFERRED_CLASS_EMOJIS = [
   "📖",
   "🛰️",
 ] as const;
+
+function getGoogleDriveEmbedUrl(inputUrl: string): string {
+  const fileIdMatch = inputUrl.match(/\/file\/d\/([^/]+)/);
+  if (fileIdMatch?.[1]) return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+  return inputUrl.replace("/view", "/preview");
+}
 
 function colorHexById(colorId: string): string {
   return GOOGLE_COLOR_OPTIONS.find((c) => c.id === colorId)?.hex ?? "#7986cb";
@@ -423,9 +434,11 @@ function App() {
   const [syncStatus, setSyncStatus] = useState<string>("");
   const [calendarOpenUrl, setCalendarOpenUrl] = useState("");
   const [syncBusy, setSyncBusy] = useState(false);
+  const [isHelpVideoOpen, setIsHelpVideoOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const strings = uiStrings[lang];
   const direction = useMemo(() => (lang === "ar" ? "rtl" : "ltr"), [lang]);
+  const helpVideoEmbedUrl = useMemo(() => getGoogleDriveEmbedUrl(HELP_VIDEO_VIEW_URL), []);
   const drivingTimeTo =
     (parseInt(driveToH || "0", 10) * 60) + parseInt(driveToM || "0", 10);
   const drivingTimeFrom =
@@ -584,6 +597,25 @@ function App() {
       return next;
     });
   }, [parsed, courseEmojis]);
+
+  useEffect(() => {
+    const alreadySeen = localStorage.getItem(HELP_VIDEO_SEEN_KEY) === "1";
+    if (!alreadySeen) setIsHelpVideoOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHelpVideoOpen) return;
+    const onEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsHelpVideoOpen(false);
+    };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [isHelpVideoOpen]);
+
+  const closeHelpVideo = () => {
+    setIsHelpVideoOpen(false);
+    localStorage.setItem(HELP_VIDEO_SEEN_KEY, "1");
+  };
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -772,18 +804,91 @@ function App() {
           )}
         </AnimatePresence>
 
+        <AnimatePresence>
+          {isHelpVideoOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/70 p-3 md:p-6"
+              onClick={closeHelpVideo}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 24 }}
+                transition={{ duration: 0.2 }}
+                className={cn("mx-auto mt-6 w-full max-w-4xl border bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]", theme.borderClass)}
+                onClick={(event) => event.stopPropagation()}
+                dir={direction}
+              >
+                <div className={cn("flex items-center justify-between border-b px-4 py-3", theme.borderClass)}>
+                  <h3 className="text-base font-black">
+                    {lang === "ar" ? "شرح: كيف تجيب ملف HTML" : "Tutorial: How to get your HTML file"}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={closeHelpVideo}
+                    className="inline-flex items-center justify-center border border-black p-1 hover:bg-black/5"
+                    aria-label={lang === "ar" ? "إغلاق" : "Close"}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="p-4 md:p-5">
+                  <div className="overflow-hidden border border-black bg-black">
+                    <iframe
+                      src={helpVideoEmbedUrl}
+                      title={lang === "ar" ? "فيديو شرح رفع ملف HTML" : "How to upload HTML tutorial video"}
+                      className="h-[220px] w-full md:h-[420px]"
+                      allow="autoplay; fullscreen"
+                      allowFullScreen
+                    />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                    <a
+                      href={HELP_VIDEO_VIEW_URL}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center gap-2 border border-black px-3 py-2 font-bold hover:bg-black/5"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      {lang === "ar" ? "فتح الفيديو في صفحة جديدة" : "Open video in new tab"}
+                    </a>
+                    <span className={cn("text-xs", theme.subTextClass)}>
+                      {lang === "ar" ? "إذا ما اشتغل العرض داخل الصفحة، استخدم الرابط الخارجي." : "If in-page playback fails, use the external link."}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column */}
           <div className="lg:col-span-5 space-y-6">
             {/* Upload */}
             <Card delay={0.1}>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3">
                 <div className={cn("p-2.5", theme.iconContainerClass)}>
                   <UploadCloud className={cn("h-6 w-6", theme.accentColor)} />
                 </div>
                 <h2 className={cn("text-xl font-bold", theme.textClass)}>
                   {strings.uploadTitle}
                 </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsHelpVideoOpen(true)}
+                  className="inline-flex items-center gap-2 border border-black px-3 py-2 text-xs font-bold hover:bg-black/5"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                  {lang === "ar" ? "فيديو الشرح" : "Help Video"}
+                </button>
               </div>
 
               <div

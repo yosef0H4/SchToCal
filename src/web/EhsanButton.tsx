@@ -76,8 +76,8 @@ export function EhsanButton({ lang }: EhsanButtonProps) {
                             <Heart className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="currentColor" />
                             <p className="text-sm leading-relaxed text-zinc-200 font-bold">
                                 {isArabic
-                                    ? "اجعل لمنصتنا أثراً في ميزان حسناتك بالصدقة. انشر الموقع لمن يحتاجه لترتيب جدوله، وستنال أجر كل من يتصدق بفضلك."
-                                    : "Give charity and make this platform a source of lasting good for you. Share it with anyone who needs help organizing their schedule, and you will be rewarded for everyone who gives through your support."}
+                                    ? "ساهم عبر منصة إحسان (ehsan.sa) واجعل لمنصتنا أثراً في ميزان حسناتك. انشر الموقع لمن يحتاجه لترتيب جدوله، وستنال أجر كل من يتصدق بفضلك."
+                                    : "Give charity through Ehsan (ehsan.sa) and make this platform a source of lasting good for you. Share it with anyone who needs help organizing their schedule, and may you earn rewards from Allah for everyone who gives through your support."}
                             </p>
                         </div>
                     </div>
